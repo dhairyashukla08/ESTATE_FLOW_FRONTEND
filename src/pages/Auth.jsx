@@ -1,10 +1,15 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../hooks/AuthContext.jsx';
 
 const Auth = () => {
-  const [isLogin, setIsLogin] = useState(true); // Toggle between Login and Register
+  const{login,register}=useAuth();
+  const navigate=useNavigate()
+  const [isLogin, setIsLogin] = useState(true);
   const [role, setRole] = useState('buyer');
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -13,22 +18,40 @@ const Auth = () => {
 
   const toggleMode = () => {
     setIsLogin(!isLogin);
-    // Reset form data when switching modes if desired
+    setError("");
     setFormData({ name: '', email: '', password: '' });
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async(e) => {
     e.preventDefault();
     setLoading(true);
-    
-    if (isLogin) {
-      console.log("Logging in with:", { email: formData.email, password: formData.password });
-    } else {
-      console.log("Registering with:", { ...formData, role });
+    setError("");
+
+    try {
+      let result;
+
+      if (isLogin) {
+        result = await login(formData.email, formData.password);
+      } else {
+        const userData = {
+          name: formData.name,
+          email: formData.email,
+          password: formData.password,
+          role: role
+        };
+        result = await register(userData);
+      }
+
+      if (result.success) {
+        navigate('/');
+      } else {
+        setError(result.message); 
+      }
+    } catch (err) {
+      setError("An unexpected error occurred. Please try again.");
+    } finally {
+      setLoading(false);
     }
-    
-    // Simulate API call
-    setTimeout(() => setLoading(false), 1500);
   };
 
   return (

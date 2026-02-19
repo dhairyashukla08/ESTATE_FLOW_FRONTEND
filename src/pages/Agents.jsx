@@ -33,7 +33,7 @@ const Agents = () => {
 
         {/* Header Section */}
         <div className="text-center max-w-2xl mx-auto space-y-6">
-          <h1 className="text-4xl font-semibold text-gray-900">
+          <h1 className="text-4xl md:text-4xl font-black mb-10 tracking-tight">
             Find a Trusted Agent
           </h1>
 

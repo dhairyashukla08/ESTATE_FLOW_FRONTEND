@@ -2,7 +2,7 @@ import React from 'react';
 import PropertyCard from '../components/PropertyCard.jsx';
 
 const Plots = () => {
-  // Dummy data for Plots
+
   const plotListings = [
     {
       _id: 'p1',
@@ -12,7 +12,7 @@ const Plots = () => {
       category: "Plots",
       isFeatured: true,
       address: { city: "Gurgaon", area: "Sector 45" },
-      features: { areaSize: 1500, bathrooms: 0 }, // Bathrooms 0 will be hidden by our adaptive card
+      features: { areaSize: 1500, bathrooms: 0 },
       price: 7500000
     },
     {

@@ -52,7 +52,7 @@ const Home = () => {
                 <button
                   key={tab}
                   onClick={() => setSearch({ ...search, type: tab })}
-                  className={`py-4 px-2 flex-1 text-sm font-medium uppercase tracking-wide transition-all duration-300 ${
+                  className={`py-4 px-2 flex-1 text-sm font-medium uppercase tracking-wide transition-all duration-300 cursor-pointer ${
                     search.type === tab 
                       ? 'text-white border-b-2 border-white' 
                       : 'text-white/70 hover:text-white'
@@ -83,7 +83,7 @@ const Home = () => {
 
               <button 
                 onClick={handleSearch}
-                className="px-8 py-3 bg-black text-white font-semibold text-sm uppercase tracking-wide rounded-xl hover:bg-gray-900 focus:outline-none focus:ring-2 focus:ring-black/20 transition-all duration-200 whitespace-nowrap"
+                className="px-8 py-3 bg-black text-white font-semibold text-sm uppercase tracking-wide rounded-xl hover:bg-gray-900 focus:outline-none focus:ring-2 focus:ring-black/20 transition-all duration-200 whitespace-nowrap cursor-pointer"
               >
                 Search
               </button>
@@ -120,7 +120,7 @@ const Home = () => {
 
         <div className="grid md:grid-cols-3 gap-10">
           {[1, 2, 3].map((item) => (
-            <div key={item} className="group bg-white rounded-[32px] shadow-sm hover:shadow-2xl transition-all duration-500 overflow-hidden border border-gray-100">
+            <div key={item} onClick={() => navigate(`/property/${item}`)} className="group bg-white rounded-[32px] shadow-sm hover:shadow-2xl transition-all duration-500 overflow-hidden border border-gray-100 cursor-pointer">
               <div className="relative h-64 overflow-hidden">
                 <img
                   src="https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&q=80&w=800"
