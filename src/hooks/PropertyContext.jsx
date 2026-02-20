@@ -5,135 +5,65 @@ const PropertyContext=createContext();
 
 export const PropertyProvider=({children})=>{
 
-const mockProperties = [
-  {
-    _id: "1",
-    title: "Luxury Penthouse",
-    price: 85000000,
-    purpose: "Buy",
-    images: [],
-    address: { city: "Mumbai", area: "Bandra West" },
-    features: { bedrooms: 3, bathrooms: 4, areaSize: 2400 },
-  },
-  {
-    _id: "2",
-    title: "Modern Apartment",
-    price: 45000000,
-    purpose: "Buy",
-    images: [],
-    address: { city: "Delhi", area: "South Extension" },
-    features: { bedrooms: 2, bathrooms: 2, areaSize: 1400 },
-  },
-  {
-    _id: "3",
-    title: "Cozy Rental Flat",
-    price: 45000,
-    purpose: "Rent",
-    images: [],
-    address: { city: "Mumbai", area: "Andheri" },
-    features: { bedrooms: 1, bathrooms: 1, areaSize: 600 },
-  },
-];
-
-
     const [properties,setProperties]=useState([]);
     const [featuredProperties, setFeaturedProperties]=useState([]);
     const[loading,setLoading]=useState(false);
     const [filters, setFilters] = useState({
     city: '',
     type: '',
+    purpose: '',
     minPrice: '',
     maxPrice: '',
   });
 
-  const applyFilters = (data, searchFilters) => {
-    let filtered = [...data];
 
-    if (searchFilters.city) {
-      filtered = filtered.filter((property) =>
-        property.address.city
-          .toLowerCase()
-          .includes(searchFilters.city.toLowerCase())
-      );
-    }
-
-    if (searchFilters.type) {
-      filtered = filtered.filter(
-        (property) =>
-          property.purpose.toLowerCase() ===
-          searchFilters.type.toLowerCase()
-      );
-    }
-
-    if (searchFilters.minPrice) {
-      filtered = filtered.filter(
-        (property) =>
-          property.price >= Number(searchFilters.minPrice)
-      );
-    }
-
-    if (searchFilters.maxPrice) {
-      filtered = filtered.filter(
-        (property) =>
-          property.price <= Number(searchFilters.maxPrice)
-      );
-    }
-
-    return filtered;
-  };
-
-//   const fetchProperties = async (searchFilters = filters) => {
-//     setLoading(true);
-//     try {
-//       const queryString = new URLSearchParams(searchFilters).toString();
-//       const response = await axios.get(`/api/properties?${queryString}`);
-//       setProperties(response.data);
-//     } catch (error) {
-//       console.error("Error fetching properties:", error);
-//     } finally {
-//       setLoading(false);
-//     }
-//   };
-
-const fetchProperties = (searchFilters = filters) => {
+const fetchProperties = async (searchFilters = filters) => {
     setLoading(true);
+    try {
+      const params = {};
+    if (searchFilters.city) params.city = searchFilters.city;
+    if (searchFilters.purpose) params.purpose = searchFilters.purpose;
+    if (searchFilters.category && searchFilters.category !== "undefined") {
+      params.category = searchFilters.category;
+    }
+    
+    if (searchFilters.minPrice) params.minPrice = searchFilters.minPrice;
+    if (searchFilters.maxPrice) params.maxPrice = searchFilters.maxPrice;
 
-    setTimeout(() => {
-      const filtered = applyFilters(mockProperties, searchFilters);
-      setProperties(filtered);
+    const queryString = new URLSearchParams(params).toString();
+    const response = await axios.get(`/api/properties/all?${queryString}`);
+    
+    setProperties(response.data);
+    } catch (error) {
+      console.error("Error fetching properties:", error);
+    } finally {
       setLoading(false);
-    }, 500); 
+    }
   };
 
-  const fetchFeatured = () => {
-    const featured = mockProperties.filter(
-      (property) => property.isFeatured
-    );
-    setFeaturedProperties(featured);
+
+ const fetchFeatured = async () => {
+    try {
+      const response = await axios.get('/api/properties/all');
+      setFeaturedProperties(response.data.slice(0, 3)); 
+    } catch (error) {
+      console.error("Error fetching featured properties:", error);
+    }
   };
 
-//   useEffect(() => {
-//     const fetchFeatured = async () => {
-//       try {
-//         const response = await axios.get('/api/properties/featured');
-//         setFeaturedProperties(response.data);
-//       } catch (error) {
-//         console.error("Error fetching featured properties:", error);
-//       }
-//     };
-//     fetchFeatured();
-//     fetchProperties(); 
-//   }, []);
-
- useEffect(() => {
+useEffect(() => {
     fetchFeatured();
     fetchProperties();
   }, []);
 
 
-  const updateFilters = (newFilters) => {
-    setFilters(prev => ({ ...prev, ...newFilters }));
-  };
+ const updateFilters = (newFilters) => {
+  setFilters(prev => {
+    const updated = { ...prev, ...newFilters };
+    fetchProperties(updated);
+    return updated;
+  });
+};
 
   return(
     <PropertyContext.Provider value={{properties,loading,featuredProperties,filters,updateFilters,fetchProperties}}>

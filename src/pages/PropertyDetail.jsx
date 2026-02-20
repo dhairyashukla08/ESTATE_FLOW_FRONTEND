@@ -1,144 +1,193 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
+import { useParams } from "react-router-dom";
+import { usePropertyContext } from "../hooks/PropertyContext";
 
 const PropertyDetail = () => {
+  const { id } = useParams();
+  const { properties, loading: contextLoading } = usePropertyContext();
+  const [property, setProperty] = useState(null);
+
+  useEffect(() => {
+    if (properties.length > 0) {
+      const found = properties.find((p) => p._id === id);
+      setProperty(found);
+    }
+  }, [id, properties]);
+
+  if (contextLoading || !property) {
+    return <div className="min-h-screen flex items-center justify-center">Loading...</div>;
+  }
+
+  const images = property.images?.length > 0 ? property.images : ["https://images.unsplash.com/photo-1560518883-ce09059eeffa"];
+
   return (
-    <div className="min-h-screen bg-gray-50 px-6 py-10">
-      <div className="max-w-7xl mx-auto grid lg:grid-cols-3 gap-12">
-        
-        {/* LEFT COLUMN */}
-        <div className="lg:col-span-2 space-y-10">
-          
-          {/* Image Grid */}
-          <div className="grid grid-cols-3 gap-4">
-            <div className="col-span-2 h-96 rounded-2xl overflow-hidden bg-gray-200">
-              <img
-                src="https://images.unsplash.com/photo-1600585154340-be6161a56a0c"
-                alt="Property"
-                className="w-full h-full object-cover hover:scale-105 transition duration-500"
-              />
+    <div className="min-h-screen bg-[#F4F4F4]">
+      {/* 1. PREMIUM HEADER SECTION */}
+      <div className="bg-white border-b border-gray-200 pt-6 pb-2">
+        <div className="max-w-7xl mx-auto px-6">
+          <div className="flex flex-col md:flex-row justify-between items-start gap-4">
+            <div>
+              <h1 className="text-2xl font-bold text-gray-800 tracking-tight">
+                {property.features?.bedrooms} BHK {property.category} for {property.purpose === 'sale' ? 'Sale' : 'Rent'} in {property.address?.area}
+              </h1>
+              <p className="text-gray-500 text-sm flex items-center gap-1 mt-1">
+                <span className="font-semibold text-gray-700">{property.address?.area}</span>, {property.address?.city}
+              </p>
             </div>
-
-            <div className="grid grid-rows-2 gap-4">
-              <div className="rounded-2xl overflow-hidden bg-gray-200">
-                <img
-                  src="https://images.unsplash.com/photo-1600607687920-4e2a09cf159d"
-                  alt="Property"
-                  className="w-full h-full object-cover hover:scale-105 transition duration-500"
-                />
-              </div>
-
-              <div className="relative rounded-2xl overflow-hidden bg-gray-200 flex items-center justify-center">
-                <span className="absolute inset-0 bg-black/40"></span>
-                <p className="relative text-white font-medium text-lg">
-                  +5 More
-                </p>
-              </div>
+            <div className="text-right">
+              <p className="text-3xl font-extrabold text-gray-900">₹{property.price?.toLocaleString("en-IN")}</p>
+              <p className="text-blue-600 text-xs font-bold mt-1 uppercase">EMI starts at ₹{Math.round(property.price * 0.007).toLocaleString("en-IN")}</p>
             </div>
           </div>
 
-          {/* Property Header */}
-          <div className="bg-white p-8 rounded-2xl shadow-sm space-y-6">
-            
-            <div className="flex flex-col md:flex-row justify-between gap-6">
-              <div>
-                <h1 className="text-3xl font-semibold text-gray-900">
-                  Luxury Penthouse
-                </h1>
-                <p className="text-gray-500 mt-2">
-                  Bandra West, Mumbai
-                </p>
-              </div>
-
-              <div className="text-left md:text-right">
-                <p className="text-3xl font-semibold text-gray-900">
-                  ₹8.5 Cr
-                </p>
-                <p className="text-gray-500 text-sm mt-1">
-                  ₹45,000 / sq.ft
-                </p>
-              </div>
+          {/* QUICK STATS RIBBON */}
+          <div className="flex gap-12 mt-8 border-t border-gray-100 py-4 overflow-x-auto no-scrollbar">
+            <div className="flex flex-col">
+              <span className="text-gray-400 text-[11px] uppercase font-bold tracking-wider">Area</span>
+              <span className="text-gray-800 font-bold">{property.features?.areaSize} <span className="text-xs font-normal">sq.ft</span></span>
             </div>
-
-            {/* Features */}
-            <div className="flex gap-10 border-t border-gray-100 pt-6 text-gray-700">
-              <div>
-                <p className="text-xl font-semibold text-gray-900">3</p>
-                <p className="text-sm text-gray-500">BHK</p>
-              </div>
-              <div>
-                <p className="text-xl font-semibold text-gray-900">4</p>
-                <p className="text-sm text-gray-500">Baths</p>
-              </div>
-              <div>
-                <p className="text-xl font-semibold text-gray-900">2,400</p>
-                <p className="text-sm text-gray-500">sqft</p>
-              </div>
+            <div className="flex flex-col border-l border-gray-200 pl-12">
+              <span className="text-gray-400 text-[11px] uppercase font-bold tracking-wider">Configuration</span>
+              <span className="text-gray-800 font-bold">{property.features?.bedrooms} BHK, {property.features?.bathrooms} Baths</span>
             </div>
-          </div>
-
-          {/* Description */}
-          <div className="bg-white p-8 rounded-2xl shadow-sm">
-            <h2 className="text-xl font-semibold text-gray-900 mb-4">
-              Description
-            </h2>
-            <p className="text-gray-600 leading-relaxed">
-              Experience unparalleled luxury in this sprawling penthouse.
-              Featuring floor-to-ceiling windows, a private terrace,
-              and state-of-the-art kitchen appliances. Perfect for those
-              who seek exclusivity in the heart of the city.
-            </p>
-          </div>
-        </div>
-
-        {/* RIGHT COLUMN - Sticky Contact Card */}
-        <div className="lg:sticky lg:top-24 h-fit">
-          <div className="bg-white p-8 rounded-2xl shadow-sm space-y-6">
-            
-            <h3 className="text-lg font-semibold text-gray-900">
-              Inquire About Property
-            </h3>
-
-            <form className="space-y-4">
-              <input
-                type="text"
-                placeholder="Your Name"
-                className="w-full px-4 py-3 rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-black transition"
-              />
-
-              <input
-                type="email"
-                placeholder="Your Email"
-                className="w-full px-4 py-3 rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-black transition"
-              />
-
-              <textarea
-                rows="4"
-                placeholder="I am interested in this property..."
-                className="w-full px-4 py-3 rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-black transition"
-              ></textarea>
-
-              <button className="w-full py-3 rounded-xl bg-black text-white hover:bg-gray-800 transition">
-                Send Inquiry
-              </button>
-            </form>
-
-            {/* Agent Info */}
-            <div className="flex items-center gap-4 pt-6 border-t border-gray-100">
-              <div className="w-12 h-12 rounded-full bg-gray-300"></div>
-              <div>
-                <p className="font-medium text-gray-900">
-                  Rajesh Kumar
-                </p>
-                <p className="text-sm text-gray-500">
-                  Premium Agent • 45 Listings
-                </p>
-              </div>
+            <div className="flex flex-col border-l border-gray-200 pl-12">
+              <span className="text-gray-400 text-[11px] uppercase font-bold tracking-wider">Status</span>
+              <span className="text-green-600 font-bold">Ready to Move</span>
             </div>
           </div>
         </div>
       </div>
+
+      <div className="max-w-7xl mx-auto px-6 py-8 grid lg:grid-cols-3 gap-8">
+        {/* LEFT COLUMN */}
+        <div className="lg:col-span-2 space-y-6">
+          
+          {/* 2. GALLERY SECTION (99acres Horizontal Style) */}
+          <div className="bg-white rounded-xl overflow-hidden shadow-sm p-2">
+            <div className="flex flex-col md:flex-row gap-2 h-[450px]">
+              <div className="md:w-3/4 h-full bg-gray-100 rounded-lg overflow-hidden">
+                <img src={images[0]} className="w-full h-full object-cover" alt="Primary View" />
+              </div>
+              <div className="md:w-1/4 flex md:flex-col gap-2 h-full">
+                {images.slice(1, 4).map((img, i) => (
+                  <div key={i} className="flex-1 rounded-lg overflow-hidden bg-gray-100">
+                    <img src={img} className="w-full h-full object-cover" alt={`View ${i}`} />
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          {/* 3. PROPERTY DETAILS GRID */}
+          <div className="bg-white rounded-xl shadow-sm p-8">
+            <h2 className="text-xl font-bold text-gray-800 mb-6 border-b pb-4">About the Property</h2>
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-y-8 gap-x-4">
+              <DetailItem label="Price per Sq.Ft" value={`₹${Math.round(property.price / property.features?.areaSize).toLocaleString("en-IN")}`} />
+              <DetailItem label="Floor" value="12th of 24" />
+              <DetailItem label="Furnishing" value="Semi-Furnished" />
+              <DetailItem label="Facing" value="East" />
+              <DetailItem label="Balcony" value="2 Balconies" />
+              <DetailItem label="Ownership" value="Freehold" />
+            </div>
+          </div>
+
+          {/* 4. DESCRIPTION BOX */}
+          <div className="bg-white rounded-xl shadow-sm p-8">
+            <h2 className="text-xl font-bold text-gray-800 mb-4">Description</h2>
+            <p className="text-gray-600 leading-relaxed text-sm whitespace-pre-line">
+              {property.description}
+            </p>
+          </div>
+        </div>
+
+       {/* RIGHT COLUMN - Sticky Contact Card */}
+<div className="lg:sticky lg:top-8 h-fit">
+  <div className="bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden">
+    
+    {/* Header with Background Accent */}
+    <div className="bg-[#002B4B] p-6 text-white">
+      <h3 className="text-lg font-bold">Contact Seller</h3>
+      <p className="text-blue-200 text-xs mt-1">Get a response within 24 hours</p>
+    </div>
+
+    <div className="p-6 space-y-6">
+      <form className="space-y-4">
+        <div className="relative">
+          <input
+            type="text"
+            placeholder="Your Name"
+            className="w-full pl-4 pr-4 py-3 rounded-lg border border-gray-200 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none transition-all text-sm"
+          />
+        </div>
+
+        <div className="relative">
+          <input
+            type="email"
+            placeholder="Email Address"
+            className="w-full pl-4 pr-4 py-3 rounded-lg border border-gray-200 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none transition-all text-sm"
+          />
+        </div>
+
+        <div className="flex gap-2">
+          <span className="flex items-center justify-center bg-gray-50 border border-gray-200 px-3 rounded-lg text-gray-500 text-sm font-semibold">
+            +91
+          </span>
+          <input
+            type="tel"
+            placeholder="Mobile Number"
+            className="w-full pl-4 pr-4 py-3 rounded-lg border border-gray-200 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none transition-all text-sm"
+          />
+        </div>
+
+        <textarea
+          rows="3"
+          placeholder="I'm interested in this property. Please get in touch with me."
+          className="w-full p-4 rounded-lg border border-gray-200 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none transition-all text-sm resize-none"
+        ></textarea>
+
+        <button className="w-full py-4 bg-[#FFBA00] text-[#002B4B] font-bold rounded-lg hover:bg-[#f0af00] transition-colors shadow-md active:scale-[0.98]">
+          Contact Now
+        </button>
+      </form>
+      {/* Agent Branding */}
+      <div className="pt-6 border-t border-gray-100 flex items-center gap-4">
+        <div className="w-14 h-14 rounded-xl bg-gray-100 border border-gray-200 overflow-hidden flex-shrink-0 flex items-center justify-center text-gray-400 font-bold text-xl">
+          {property.agentName?.charAt(0) || "A"}
+        </div>
+        <div className="min-w-0">
+          <p className="font-bold text-gray-900 truncate">
+            {property.agentName || property.agent?.name}
+          </p>
+          <p className="text-[11px] text-blue-600 font-bold uppercase tracking-wider">
+            Verified Professional
+          </p>
+          <p className="text-xs text-gray-500 mt-0.5 truncate">
+            {property.contact || property.agent?.phoneNumber}
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  {/* Trust Badge Below the Card */}
+  <div className="mt-4 flex items-center gap-2 justify-center text-gray-400">
+    <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+      <path fillRule="evenodd" d="M2.166 4.999A11.954 11.954 0 0010 1.944 11.954 11.954 0 0017.834 5c.11.65.166 1.32.166 2.001 0 5.225-3.34 9.67-8 11.317C5.34 16.67 2 12.225 2 7c0-.682.057-1.35.166-2.001zm11.541 3.708a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+    </svg>
+    <span className="text-[10px] font-bold uppercase tracking-widest">Safe & Verified Listing</span>
+  </div>
+</div>
+      </div>
     </div>
   );
 };
+
+// Helper Component for the Grid
+const DetailItem = ({ label, value }) => (
+  <div className="flex flex-col">
+    <span className="text-gray-400 text-xs mb-1 font-medium">{label}</span>
+    <span className="text-gray-800 font-semibold">{value}</span>
+  </div>
+);
 
 export default PropertyDetail;
