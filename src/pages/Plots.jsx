@@ -1,33 +1,12 @@
 import React from 'react';
 import PropertyCard from '../components/PropertyCard.jsx';
+import { usePropertyContext } from '../hooks/PropertyContext.jsx';
 
 const Plots = () => {
 
-  const plotListings = [
-    {
-      _id: 'p1',
-      title: "Green Valley Residential Plot",
-      images: ["https://images.unsplash.com/photo-1500382017468-9049fed747ef?auto=format&fit=crop&q=80&w=800"],
-      purpose: "For Sale",
-      category: "Plots",
-      isFeatured: true,
-      address: { city: "Gurgaon", area: "Sector 45" },
-      features: { areaSize: 1500, bathrooms: 0 },
-      price: 7500000
-    },
-    {
-      _id: 'p2',
-      title: "Industrial Land Parcel",
-      images: ["https://images.unsplash.com/photo-1599930113854-d6d7fd521f10?auto=format&fit=crop&q=80&w=800"],
-      purpose: "For Sale",
-      category: "Plots",
-      address: { city: "Pune", area: "Chakan" },
-      features: { areaSize: 10000, bathrooms: 0 },
-      price: 24000000
-    }
-  ];
+ const { plotProperties, loading } = usePropertyContext();
 
-  return (
+ return (
     <div className="bg-gray-50 min-h-screen">
       {/* Hero Section */}
       <div className="relative h-[400px] flex items-center justify-center bg-emerald-900">
@@ -46,8 +25,8 @@ const Plots = () => {
         {/* Stats Section */}
         <div className="bg-white p-10 rounded-[40px] shadow-sm mb-16 flex flex-wrap gap-8 justify-around items-center border border-gray-100">
            <div className="text-center">
-             <p className="text-gray-400 uppercase text-[10px] font-black tracking-[0.2em]">Available Area</p>
-             <p className="text-2xl font-black text-gray-900 mt-1">1,200+ Acres</p>
+             <p className="text-gray-400 uppercase text-[10px] font-black tracking-[0.2em]">Available Listings</p>
+             <p className="text-2xl font-black text-gray-900 mt-1">{loading ? "..." : plotProperties.length}</p>
            </div>
            <div className="h-12 w-[1px] bg-gray-100 hidden md:block"></div>
            <div className="text-center">
@@ -61,12 +40,26 @@ const Plots = () => {
            </div>
         </div>
 
-        {/* Grid */}
-        <div className="grid md:grid-cols-3 gap-10">
-          {plotListings.map((plot) => (
-            <PropertyCard key={plot._id} property={plot} />
-          ))}
-        </div>
+        {/* Grid Logic */}
+        {loading ? (
+          <div className="grid md:grid-cols-3 gap-10">
+            {[1, 2, 3].map((n) => (
+              <div key={n} className="h-80 bg-white animate-pulse rounded-[40px] border border-gray-100"></div>
+            ))}
+          </div>
+        ) : (
+          <div className="grid md:grid-cols-3 gap-10">
+            {plotProperties.length > 0 ? (
+              plotProperties.map((plot) => (
+                <PropertyCard key={plot._id} property={plot} />
+              ))
+            ) : (
+              <div className="col-span-3 text-center py-20">
+                <p className="text-gray-400 text-lg">No plots available at the moment.</p>
+              </div>
+            )}
+          </div>
+        )}
       </div>
     </div>
   );

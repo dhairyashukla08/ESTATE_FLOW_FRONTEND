@@ -18,6 +18,22 @@ const PropertyDetail = () => {
     return <div className="min-h-screen flex items-center justify-center">Loading...</div>;
   }
 
+  const getDynamicTitle = () => {
+    const { category, features, purpose, address, propertyType } = property;
+    let typeStr = "";
+    if (category === "Plot") {
+      typeStr = "Residential Plot";
+    } else if (category === "Commercial") {
+      typeStr = propertyType || "Commercial Space";
+    } else {
+      typeStr = `${features?.bedrooms || 0} BHK ${category}`;
+    }
+    const purposeStr = (purpose?.toLowerCase() === 'sale' || purpose?.toLowerCase() === 'buy') 
+      ? 'Sale' 
+      : 'Rent';
+    return `${typeStr} for ${purposeStr} in ${address?.area || 'this location'}`;
+  };
+
   const images = property.images?.length > 0 ? property.images : ["https://images.unsplash.com/photo-1560518883-ce09059eeffa"];
 
   return (
@@ -28,7 +44,7 @@ const PropertyDetail = () => {
           <div className="flex flex-col md:flex-row justify-between items-start gap-4">
             <div>
               <h1 className="text-2xl font-bold text-gray-800 tracking-tight">
-                {property.features?.bedrooms} BHK {property.category} for {property.purpose === 'sale' ? 'Sale' : 'Rent'} in {property.address?.area}
+                {getDynamicTitle()}
               </h1>
               <p className="text-gray-500 text-sm flex items-center gap-1 mt-1">
                 <span className="font-semibold text-gray-700">{property.address?.area}</span>, {property.address?.city}
@@ -44,11 +60,15 @@ const PropertyDetail = () => {
           <div className="flex gap-12 mt-8 border-t border-gray-100 py-4 overflow-x-auto no-scrollbar">
             <div className="flex flex-col">
               <span className="text-gray-400 text-[11px] uppercase font-bold tracking-wider">Area</span>
-              <span className="text-gray-800 font-bold">{property.features?.areaSize} <span className="text-xs font-normal">sq.ft</span></span>
+              <span className="text-gray-800 font-bold">{property.features?.areaSize|| property.features?.carpetArea} <span className="text-xs font-normal">sq.ft</span></span>
             </div>
             <div className="flex flex-col border-l border-gray-200 pl-12">
-              <span className="text-gray-400 text-[11px] uppercase font-bold tracking-wider">Configuration</span>
-              <span className="text-gray-800 font-bold">{property.features?.bedrooms} BHK, {property.features?.bathrooms} Baths</span>
+              <span className="text-gray-400 text-[11px] uppercase font-bold tracking-wider">{property.category === 'Plot' ? 'Type' : 'Configuration'}</span>
+              <span className="text-gray-800 font-bold">
+                {property.category === 'Plot' 
+                  ? 'Residential Plot' 
+                  : `${property.features?.bedrooms || 0} BHK, ${property.features?.bathrooms || 0} Baths`}
+              </span>
             </div>
             <div className="flex flex-col border-l border-gray-200 pl-12">
               <span className="text-gray-400 text-[11px] uppercase font-bold tracking-wider">Status</span>

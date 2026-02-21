@@ -8,33 +8,44 @@ const AddProperty = () => {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [selectedFiles, setSelectedFiles] = useState([]);
+  const [activeTab, setActiveTab] = useState("Residential");
 
   const [formData, setFormData] = useState({
     title: "",
-    category: "Apartment",
+    category: "Apartment", 
+    propertyType: "Office", 
     purpose: "Buy",
     price: "",
     area: "",
     city: "",
-    areaSize: "",
+    areaSize: "", 
+    carpetArea: "", 
+    plotArea: "", 
     bedrooms: "",
     bathrooms: "",
     description: "",
-    images: [],
+    parking: "Available",
+    maintenance: "",
   });
+
+  // FIX 1: Update propertyType automatically when tab changes to avoid Enum errors
+  const handleTabChange = (tab) => {
+    setActiveTab(tab);
+    setFormData(prev => ({
+      ...prev,
+      propertyType: tab === "Plot" ? "Residential" : tab === "Commercial" ? "Office" : ""
+    }));
+  };
 
   const uploadImagesToCloudinary = async (files) => {
     const uploadPromises = Array.from(files).map(async (file) => {
       const data = new FormData();
       data.append("file", file);
-      data.append(
-        "upload_preset",
-        import.meta.env.VITE_CLOUDINARY_UPLOAD_PRESET,
-      );
+      data.append("upload_preset", import.meta.env.VITE_CLOUDINARY_UPLOAD_PRESET);
       data.append("cloud_name", import.meta.env.VITE_CLOUDINARY_CLOUD_NAME);
       const response = await axios.post(
         `https://api.cloudinary.com/v1_1/${import.meta.env.VITE_CLOUDINARY_CLOUD_NAME}/image/upload`,
-        data,
+        data
       );
       return response.data.secure_url;
     });
@@ -48,17 +59,52 @@ const AddProperty = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!user) return alert("Please login first");
-    if (selectedFiles.length === 0)
-      return alert("Please upload at least one image");
+    if (selectedFiles.length === 0) return alert("Please upload at least one image");
 
     setLoading(true);
     try {
       const uploadedImageUrls = await uploadImagesToCloudinary(selectedFiles);
-      const finalData = { ...formData, images: uploadedImageUrls };
-      const res = await axios.post("/api/properties/add", finalData, {
+      
+      let endpoint = "/api/properties/add"; 
+      let finalPayload = { ...formData, images: uploadedImageUrls };
+
+      // FIX 2: Explicit mapping and Number conversion for Backend Validation
+      if (activeTab === "Commercial") {
+        endpoint = "/api/commercial/add";
+        finalPayload = {
+          title: formData.title,
+          description: formData.description,
+          purpose: formData.purpose === "Buy" ? "Sale" : "Rent",
+          propertyType: formData.propertyType,
+          price: Number(formData.price),
+          images: uploadedImageUrls,
+          address: { area: formData.area, city: formData.city },
+          // Send these flat; our updated controller will nest them into 'features'
+          carpetArea: Number(formData.carpetArea),
+          bathrooms: Number(formData.bathrooms || 0),
+          parking: formData.parking,
+          maintenance: Number(formData.maintenance || 0)
+        };
+      } else if (activeTab === "Plot") {
+        endpoint = "/api/plots/add";
+        finalPayload = {
+          title: formData.title,
+          description: formData.description,
+          purpose: "Sale",
+          propertyType: formData.propertyType,
+          price: Number(formData.price),
+          images: uploadedImageUrls,
+          address: { area: formData.area, city: formData.city },
+          // Send flat for the controller to handle
+          plotArea: Number(formData.plotArea)
+        };
+      }
+
+      await axios.post(endpoint, finalPayload, {
         headers: { Authorization: `Bearer ${user.token}` },
       });
-      alert("Property Published Successfully!");
+
+      alert(`${activeTab} Published Successfully!`);
       navigate("/search");
     } catch (err) {
       console.error(err);
@@ -71,181 +117,130 @@ const AddProperty = () => {
   return (
     <div className="min-h-screen bg-gray-50 px-6 py-12">
       <div className="max-w-4xl mx-auto bg-white rounded-2xl shadow-sm p-10">
-        <h2 className="text-2xl font-semibold text-gray-900 mb-10">
-          List New Property
-        </h2>
+        
+        <div className="flex border-b border-gray-100 mb-10">
+          {["Residential", "Commercial", "Plot"].map((tab) => (
+            <button
+              key={tab}
+              type="button"
+              onClick={() => handleTabChange(tab)}
+              className={`pb-4 px-6 text-sm font-bold transition-all ${activeTab === tab ? "border-b-2 border-black text-black" : "text-gray-400 hover:text-gray-600"}`}
+            >
+              {tab}
+            </button>
+          ))}
+        </div>
+
+        <h2 className="text-2xl font-semibold text-gray-900 mb-10">List New {activeTab}</h2>
 
         <form onSubmit={handleSubmit} className="space-y-8">
-          {/* Row 1: Title and Purpose */}
+          {/* Title & Purpose */}
           <div className="grid md:grid-cols-2 gap-6">
             <div className="flex flex-col">
-              <label className="text-sm text-gray-600 mb-2">
-                Property Title
-              </label>
-              <input
-                name="title"
-                value={formData.title}
-                onChange={handleChange}
-                required
-                type="text"
-                placeholder="e.g. Luxury 3BHK Apartment"
-                className="px-4 py-3 rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-black transition"
-              />
+              <label className="text-sm text-gray-600 mb-2">Title</label>
+              <input name="title" value={formData.title} onChange={handleChange} required type="text" className="px-4 py-3 rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-black transition" />
             </div>
             <div className="flex flex-col">
               <label className="text-sm text-gray-600 mb-2">Purpose</label>
-              <select
-                name="purpose"
-                value={formData.purpose}
-                onChange={handleChange}
-                className="px-4 py-3 rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-black transition"
-              >
+              <select name="purpose" value={formData.purpose} onChange={handleChange} className="px-4 py-3 rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-black transition">
                 <option value="Buy">Sale</option>
                 <option value="Rent">Rent</option>
               </select>
             </div>
           </div>
 
-          {/* Row 2: Category, Price, Area Size */}
+          {/* Dynamic Row: Type, Area, Price */}
           <div className="grid md:grid-cols-3 gap-6">
             <div className="flex flex-col">
-              <label className="text-sm text-gray-600 mb-2">
-                Property Type
-              </label>
-              <select
-                name="category"
-                value={formData.category}
-                onChange={handleChange}
-                className="px-4 py-3 rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-black transition"
+              <label className="text-sm text-gray-600 mb-2">Type</label>
+              <select 
+                name={activeTab === "Residential" ? "category" : "propertyType"} 
+                value={activeTab === "Residential" ? formData.category : formData.propertyType}
+                onChange={handleChange} 
+                className="px-4 py-3 rounded-xl border border-gray-300"
               >
-                <option value="Apartment">Apartment</option>
-                <option value="Villa">Villa</option>
-                <option value="Plot">Plot</option>
+                {activeTab === "Residential" && (<><option value="Apartment">Apartment</option><option value="Villa">Villa</option></>)}
+                {activeTab === "Commercial" && (<><option value="Office">Office</option><option value="Shop">Shop</option><option value="Warehouse">Warehouse</option></>)}
+                {activeTab === "Plot" && (<><option value="Residential">Residential Plot</option><option value="Agricultural">Agricultural</option><option value="Industrial">Industrial</option></>)}
               </select>
             </div>
 
             <div className="flex flex-col">
               <label className="text-sm text-gray-600 mb-2">
-                BHK (Bedrooms)
+                {activeTab === "Residential" ? "Area Size (sqft)" : activeTab === "Commercial" ? "Carpet Area (sqft)" : "Plot Area (sqft)"}
               </label>
-              <select
-                name="bedrooms"
-                value={formData.bedrooms}
-                onChange={handleChange}
-                required={formData.category !== "Plot"}
-                className="px-4 py-3 rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-black transition"
-              >
-                <option value="">Select BHK</option>
-                <option value="1">1 BHK</option>
-                <option value="2">2 BHK</option>
-                <option value="3">3 BHK</option>
-                <option value="4">4 BHK</option>
-                <option value="5">5+ BHK</option>
-                <option value="0">N/A (Plot)</option>
-              </select>
+              <input 
+                name={activeTab === "Residential" ? "areaSize" : activeTab === "Commercial" ? "carpetArea" : "plotArea"} 
+                value={activeTab === "Residential" ? formData.areaSize : activeTab === "Commercial" ? formData.carpetArea : formData.plotArea}
+                onChange={handleChange} required type="number" className="px-4 py-3 rounded-xl border border-gray-300" 
+              />
             </div>
+
             <div className="flex flex-col">
               <label className="text-sm text-gray-600 mb-2">Price (INR)</label>
-              <input
-                name="price"
-                value={formData.price}
-                onChange={handleChange}
-                required
-                type="number"
-                placeholder="50,00,000"
-                className="px-4 py-3 rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-black transition"
-              />
-            </div>
-            <div className="flex flex-col">
-              <label className="text-sm text-gray-600 mb-2">
-                Area Size (sqft)
-              </label>
-              <input
-                name="areaSize"
-                value={formData.areaSize}
-                onChange={handleChange}
-                required
-                type="number"
-                placeholder="1200"
-                className="px-4 py-3 rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-black transition"
-              />
+              <input name="price" value={formData.price} onChange={handleChange} required type="number" className="px-4 py-3 rounded-xl border border-gray-300" />
             </div>
           </div>
 
-          {/* Row 3: Location */}
+          {/* Specific sections for Res/Comm... */}
+          {activeTab === "Residential" && (
+            <div className="grid md:grid-cols-2 gap-6">
+              <div className="flex flex-col">
+                <label className="text-sm text-gray-600 mb-2">BHK</label>
+                <select name="bedrooms" value={formData.bedrooms} onChange={handleChange} className="px-4 py-3 rounded-xl border border-gray-300">
+                  <option value="">Select BHK</option>
+                  {[1, 2, 3, 4, 5].map(n => <option key={n} value={n}>{n} BHK</option>)}
+                </select>
+              </div>
+              <div className="flex flex-col">
+                <label className="text-sm text-gray-600 mb-2">Bathrooms</label>
+                <input name="bathrooms" value={formData.bathrooms} type="number" onChange={handleChange} className="px-4 py-3 rounded-xl border border-gray-300" />
+              </div>
+            </div>
+          )}
+
+          {activeTab === "Commercial" && (
+            <div className="grid md:grid-cols-2 gap-6">
+              <div className="flex flex-col">
+                <label className="text-sm text-gray-600 mb-2">Maintenance</label>
+                <input name="maintenance" value={formData.maintenance} type="number" onChange={handleChange} className="px-4 py-3 rounded-xl border border-gray-300" />
+              </div>
+              <div className="flex flex-col">
+                <label className="text-sm text-gray-600 mb-2">Parking</label>
+                <select name="parking" value={formData.parking} onChange={handleChange} className="px-4 py-3 rounded-xl border border-gray-300">
+                  <option value="Available">Available</option>
+                  <option value="Not Available">Not Available</option>
+                </select>
+              </div>
+            </div>
+          )}
+
+          {/* Location & Images & Description (Keep your existing code for these) */}
           <div className="grid md:grid-cols-2 gap-6">
             <div className="flex flex-col">
-              <label className="text-sm text-gray-600 mb-2">
-                Area / Locality
-              </label>
-              <input
-                name="area"
-                value={formData.area}
-                onChange={handleChange}
-                required
-                type="text"
-                placeholder="e.g. Bandra West"
-                className="px-4 py-3 rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-black transition"
-              />
+              <label className="text-sm text-gray-600 mb-2">Area / Locality</label>
+              <input name="area" value={formData.area} onChange={handleChange} required type="text" className="px-4 py-3 rounded-xl border border-gray-300" />
             </div>
             <div className="flex flex-col">
               <label className="text-sm text-gray-600 mb-2">City</label>
-              <input
-                name="city"
-                value={formData.city}
-                onChange={handleChange}
-                required
-                type="text"
-                placeholder="e.g. Mumbai"
-                className="px-4 py-3 rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-black transition"
-              />
+              <input name="city" value={formData.city} onChange={handleChange} required type="text" className="px-4 py-3 rounded-xl border border-gray-300" />
             </div>
           </div>
 
           <div className="flex flex-col">
-            <label className="text-sm text-gray-600 mb-2">
-              Property Images
-            </label>
-            <input
-              type="file"
-              multiple
-              accept="image/*"
-              onChange={(e) => setSelectedFiles(e.target.files)}
-              className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-black file:text-white hover:file:bg-gray-800"
-            />
-            <p className="mt-2 text-xs text-gray-400">
-              Select multiple images of the property.
-            </p>
+            <label className="text-sm text-gray-600 mb-2">Property Images</label>
+            <input type="file" multiple accept="image/*" onChange={(e) => setSelectedFiles(e.target.files)} className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-black file:text-white hover:file:bg-gray-800" />
           </div>
 
-          {/* Description */}
           <div className="flex flex-col">
             <label className="text-sm text-gray-600 mb-2">Description</label>
-            <textarea
-              name="description"
-              value={formData.description}
-              onChange={handleChange}
-              rows="4"
-              placeholder="Tell us about the property features, amenities, etc."
-              className="px-4 py-3 rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-black transition"
-            ></textarea>
+            <textarea name="description" value={formData.description} onChange={handleChange} rows="4" className="px-4 py-3 rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-black transition"></textarea>
           </div>
 
-          {/* Buttons */}
           <div className="flex justify-end gap-4 pt-6 border-t border-gray-100">
-            <button
-              type="button"
-              onClick={() => navigate(-1)}
-              className="px-6 py-3 rounded-xl border border-gray-300 text-gray-700 hover:bg-gray-100 transition"
-            >
-              Cancel
-            </button>
-            <button
-              type="submit"
-              disabled={loading}
-              className={`px-8 py-3 rounded-xl bg-black text-white font-bold transition ${loading ? "opacity-50 cursor-not-allowed" : "hover:bg-gray-800"}`}
-            >
-              {loading ? "Publishing..." : "Publish Property"}
+            <button type="button" onClick={() => navigate(-1)} className="px-6 py-3 rounded-xl border border-gray-300 text-gray-700 hover:bg-gray-100 transition">Cancel</button>
+            <button type="submit" disabled={loading} className={`px-8 py-3 rounded-xl bg-black text-white font-bold transition ${loading ? "opacity-50 cursor-not-allowed" : "hover:bg-gray-800"}`}>
+              {loading ? "Publishing..." : `Publish ${activeTab}`}
             </button>
           </div>
         </form>
