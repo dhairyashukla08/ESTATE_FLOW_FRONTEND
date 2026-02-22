@@ -1,9 +1,11 @@
 import axios from "axios";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useAuth } from "../hooks/AuthContext.jsx";
-import { useNavigate } from "react-router-dom";
+import { useNavigate,useLocation } from "react-router-dom";
 
 const AddProperty = () => {
+  const location = useLocation();
+  const editData = location.state?.editData;
   const { user } = useAuth();
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
@@ -11,24 +13,23 @@ const AddProperty = () => {
   const [activeTab, setActiveTab] = useState("Residential");
 
   const [formData, setFormData] = useState({
-    title: "",
-    category: "Apartment", 
-    propertyType: "Office", 
-    purpose: "Buy",
-    price: "",
-    area: "",
-    city: "",
-    areaSize: "", 
-    carpetArea: "", 
-    plotArea: "", 
-    bedrooms: "",
-    bathrooms: "",
-    description: "",
-    parking: "Available",
-    maintenance: "",
+    title: editData?.title||"",
+    category: editData?.category||"Apartment", 
+    propertyType: editData?.propertyType|| "Office", 
+    purpose: editData?.purpose||"Buy",
+    price: editData?.price|| "",
+    area: editData?.area||"",
+    city: editData?.city||"",
+    areaSize: editData?.areaSize||"", 
+    carpetArea: editData?.carpetArea|| "", 
+    plotArea: editData?.plotArea||"", 
+    bedrooms: editData?.bedrooms|| "",
+    bathrooms: editData?.bathrooms||"",
+    description: editData?.description||"",
+    parking: editData?.parking||"Available",
+    maintenance: editData?.maintenance||"",
   });
 
-  // FIX 1: Update propertyType automatically when tab changes to avoid Enum errors
   const handleTabChange = (tab) => {
     setActiveTab(tab);
     setFormData(prev => ({
@@ -57,62 +58,82 @@ const AddProperty = () => {
   };
 
   const handleSubmit = async (e) => {
-    e.preventDefault();
-    if (!user) return alert("Please login first");
-    if (selectedFiles.length === 0) return alert("Please upload at least one image");
+  e.preventDefault();
+  if (!user) return alert("Please login first");
 
-    setLoading(true);
-    try {
-      const uploadedImageUrls = await uploadImagesToCloudinary(selectedFiles);
-      
-      let endpoint = "/api/properties/add"; 
-      let finalPayload = { ...formData, images: uploadedImageUrls };
+  setLoading(true);
+  try {
+    let uploadedImageUrls = editData?.images || [];
 
-      // FIX 2: Explicit mapping and Number conversion for Backend Validation
-      if (activeTab === "Commercial") {
-        endpoint = "/api/commercial/add";
-        finalPayload = {
-          title: formData.title,
-          description: formData.description,
-          purpose: formData.purpose === "Buy" ? "Sale" : "Rent",
-          propertyType: formData.propertyType,
-          price: Number(formData.price),
-          images: uploadedImageUrls,
-          address: { area: formData.area, city: formData.city },
-          // Send these flat; our updated controller will nest them into 'features'
-          carpetArea: Number(formData.carpetArea),
-          bathrooms: Number(formData.bathrooms || 0),
-          parking: formData.parking,
-          maintenance: Number(formData.maintenance || 0)
-        };
-      } else if (activeTab === "Plot") {
-        endpoint = "/api/plots/add";
-        finalPayload = {
-          title: formData.title,
-          description: formData.description,
-          purpose: "Sale",
-          propertyType: formData.propertyType,
-          price: Number(formData.price),
-          images: uploadedImageUrls,
-          address: { area: formData.area, city: formData.city },
-          // Send flat for the controller to handle
-          plotArea: Number(formData.plotArea)
-        };
-      }
-
-      await axios.post(endpoint, finalPayload, {
-        headers: { Authorization: `Bearer ${user.token}` },
-      });
-
-      alert(`${activeTab} Published Successfully!`);
-      navigate("/search");
-    } catch (err) {
-      console.error(err);
-      alert(err.response?.data?.message || "Error publishing property");
-    } finally {
-      setLoading(false);
+    if (selectedFiles.length > 0) {
+      uploadedImageUrls = await uploadImagesToCloudinary(selectedFiles);
     }
-  };
+
+    if (uploadedImageUrls.length === 0) {
+      setLoading(false);
+      return alert("Please upload at least one image");
+    }
+
+    let baseUrl = "/api/properties";
+    if (activeTab === "Commercial") baseUrl = "/api/commercial";
+    if (activeTab === "Plot") baseUrl = "/api/plots";
+
+    const endpoint = editData 
+      ? `${baseUrl}/update/${editData._id}` 
+      : `${baseUrl}/add`;
+    
+    const method = editData ? "put" : "post";
+
+    let finalPayload;
+    if (activeTab === "Commercial") {
+      finalPayload = {
+        title: formData.title,
+        description: formData.description,
+        purpose: formData.purpose === "Buy" ? "Sale" : "Rent",
+        propertyType: formData.propertyType,
+        price: Number(formData.price),
+        images: uploadedImageUrls,
+        address: { area: formData.area, city: formData.city },
+        carpetArea: Number(formData.carpetArea),
+        bathrooms: Number(formData.bathrooms || 0),
+        parking: formData.parking,
+        maintenance: Number(formData.maintenance || 0)
+      };
+    } else if (activeTab === "Plot") {
+      finalPayload = {
+        title: formData.title,
+        description: formData.description,
+        purpose: "Sale",
+        propertyType: formData.propertyType,
+        price: Number(formData.price),
+        images: uploadedImageUrls,
+        address: { area: formData.area, city: formData.city },
+        plotArea: Number(formData.plotArea)
+      };
+    } else {
+      finalPayload = { ...formData, images: uploadedImageUrls };
+    }
+    await axios[method](endpoint, finalPayload, {
+      headers: { Authorization: `Bearer ${user.token}` },
+    });
+
+    alert(`${activeTab} ${editData ? "Updated" : "Published"} Successfully!`);
+    navigate("/agent/manage");
+  } catch (err) {
+    console.error(err);
+    alert(err.response?.data?.message || "Error saving property");
+  } finally {
+    setLoading(false);
+  }
+};
+
+useEffect(()=>{
+  if (editData) {
+    if (editData.category === "Plot") setActiveTab("Plot");
+    else if (editData.category === "Commercial") setActiveTab("Commercial");
+    else setActiveTab("Residential");
+  }
+},[editData]);
 
   return (
     <div className="min-h-screen bg-gray-50 px-6 py-12">
@@ -131,7 +152,7 @@ const AddProperty = () => {
           ))}
         </div>
 
-        <h2 className="text-2xl font-semibold text-gray-900 mb-10">List New {activeTab}</h2>
+        <h2 className="text-2xl font-semibold text-gray-900 mb-10">{editData ? `Edit ${activeTab}` : `List New ${activeTab}`}</h2>
 
         <form onSubmit={handleSubmit} className="space-y-8">
           {/* Title & Purpose */}

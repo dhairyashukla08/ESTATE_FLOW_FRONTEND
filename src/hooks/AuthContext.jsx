@@ -1,82 +1,82 @@
 import axios from "axios";
 import { createContext, useEffect, useState, useContext } from "react";
 
-const AuthContext=createContext();
+const AuthContext = createContext();
 const API = axios.create({ baseURL: "http://localhost:8000/api/auth" });
-export const AuthProvider=({children})=>{
-    const[user,setUser]=useState(null);
-    const [loading,setLoading]=useState(true);
+export const AuthProvider = ({ children }) => {
+  const [user, setUser] = useState(null);
+  const [loading, setLoading] = useState(true);
 
-
-    useEffect(()=>{
-        const storedUser = localStorage.getItem('user');
+  useEffect(() => {
+    const storedUser = localStorage.getItem("user");
     if (storedUser) {
       setUser(JSON.parse(storedUser));
     }
     setLoading(false);
-    },[]);
+  }, []);
 
-    const login = async(email, password) => {
-   try {
+  const login = async (email, password) => {
+    try {
       const response = await API.post("/login", { email, password });
       const data = response.data;
-      
-      localStorage.setItem('user', JSON.stringify(data));
+
+      localStorage.setItem("user", JSON.stringify(data));
       setUser(data);
       return { success: true };
     } catch (error) {
-      return { 
-        success: false, 
-        message: error.response?.data?.message || "Login failed. Please try again." 
+      return {
+        success: false,
+        message:
+          error.response?.data?.message || "Login failed. Please try again.",
       };
     }
   };
 
-  const register = async(userData) => {
-  try {
+  const register = async (userData) => {
+    try {
       const response = await API.post("/register", userData);
       const data = response.data;
 
-      localStorage.setItem('user', JSON.stringify(data));
+      localStorage.setItem("user", JSON.stringify(data));
       setUser(data);
       return { success: true };
     } catch (error) {
-      return { 
-        success: false, 
-        message: error.response?.data?.message || "Registration failed." 
+      return {
+        success: false,
+        message: error.response?.data?.message || "Registration failed.",
       };
     }
   };
 
-  const updateProfile=async(updatedData)=>{
+  const updateProfile = async (updatedData) => {
     try {
-        const response = await API.put("/update-profile", updatedData, {
-      headers: { Authorization: `Bearer ${user.token}` },
-    });
+      const response = await API.put("/update-profile", updatedData, {
+        headers: { Authorization: `Bearer ${user.token}` },
+      });
 
-    const newUserData = { ...response.data, token: user.token };
-    localStorage.setItem('user', JSON.stringify(newUserData));
-    setUser(newUserData);
-    return { success: true };
+      const newUserData = { ...response.data, token: user.token };
+      localStorage.setItem("user", JSON.stringify(newUserData));
+      setUser(newUserData);
+      return { success: true };
     } catch (error) {
-        return { 
-      success: false, 
-      message: error.response?.data?.message || "Failed to update profile" 
-    };
+      return {
+        success: false,
+        message: error.response?.data?.message || "Failed to update profile",
+      };
     }
-  }
+  };
 
-   const logout=()=>{
-    localStorage.removeItem('user');
+  const logout = () => {
+    localStorage.removeItem("user");
     setUser(null);
-   };
-   return(
-    <AuthContext.Provider value={{user,loading,logout,login,register,updateProfile}}>
-        {children}
+  };
+  return (
+    <AuthContext.Provider
+      value={{ user, loading, logout, login, register, updateProfile }}
+    >
+      {children}
     </AuthContext.Provider>
-)
+  );
 };
 
-export const useAuth=()=>useContext(AuthContext);
-
-
+export const useAuth = () => useContext(AuthContext);

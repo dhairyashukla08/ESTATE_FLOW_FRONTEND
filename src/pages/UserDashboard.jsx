@@ -3,7 +3,7 @@ import { useAuth } from "../hooks/AuthContext.jsx";
 import { Navigate } from "react-router-dom";
 
 const UserDashboard = () => {
-  const { user,updateProfile } = useAuth(); // Assuming login updates state/localStorage
+  const { user, updateProfile } = useAuth(); // Assuming login updates state/localStorage
   const [isEditing, setIsEditing] = useState(false);
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState({ type: "", text: "" });
@@ -27,15 +27,15 @@ const UserDashboard = () => {
     return <Navigate to="/login" />;
   }
 
-  const handleSave =async () => {
-setLoading(true);
+  const handleSave = async () => {
+    setLoading(true);
     setMessage({ type: "", text: "" });
-   const result = await updateProfile({
+    const result = await updateProfile({
       name: formData.name,
-      phoneNumber: formData.phone, 
+      phoneNumber: formData.phone,
     });
 
-   if (result.success) {
+    if (result.success) {
       setIsEditing(false);
       setMessage({ type: "success", text: "Profile updated successfully!" });
       setTimeout(() => setMessage({ type: "", text: "" }), 3000);

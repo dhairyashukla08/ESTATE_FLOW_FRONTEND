@@ -1,7 +1,7 @@
-import React from 'react';
-import { useNavigate } from 'react-router-dom';
+import React from "react";
+import { useNavigate } from "react-router-dom";
 
-const AgentCard = ({ agent,onContact }) => {
+const AgentCard = ({ agent, onContact }) => {
   const navigate = useNavigate();
 
   const handleContact = (e) => {
@@ -12,7 +12,7 @@ const AgentCard = ({ agent,onContact }) => {
   };
 
   return (
-    <div 
+    <div
       onClick={() => navigate(`/agents/${agent.id}`)} // Preparing for Agent Profile Page
       className="bg-white rounded-3xl p-8 shadow-sm hover:shadow-2xl hover:-translate-y-1 transition-all duration-300 group cursor-pointer border border-transparent hover:border-gray-100"
     >
@@ -33,7 +33,25 @@ const AgentCard = ({ agent,onContact }) => {
             {agent.name}
           </h3>
           <p className="text-sm font-medium text-gray-500 flex items-center gap-1">
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
+            <svg
+              className="w-4 h-4"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth="2"
+                d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"
+              />
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth="2"
+                d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"
+              />
+            </svg>
             {agent.location || "Available Nationwide"}
           </p>
         </div>
@@ -55,7 +73,8 @@ const AgentCard = ({ agent,onContact }) => {
             Listings
           </p>
           <p className="text-lg font-bold text-gray-900">
-            {agent.listings} <span className="text-xs font-medium text-gray-500">Ads</span>
+            {agent.listings}{" "}
+            <span className="text-xs font-medium text-gray-500">Ads</span>
           </p>
         </div>
       </div>
@@ -69,15 +88,17 @@ const AgentCard = ({ agent,onContact }) => {
 
       {/* Buttons */}
       <div className="flex gap-3">
-        <button 
+        <button
           onClick={handleContact}
           className="flex-1 bg-black text-white py-4 rounded-2xl text-xs font-black uppercase tracking-widest hover:bg-gray-800 transition shadow-lg active:scale-95"
         >
           Contact Agent
         </button>
 
-        <button 
-          onClick={(e) => { e.stopPropagation(); /* Logic for share */ }}
+        <button
+          onClick={(e) => {
+            e.stopPropagation(); /* Logic for share */
+          }}
           className="px-5 py-4 border border-gray-200 rounded-2xl hover:bg-gray-50 transition active:scale-95"
         >
           <svg

@@ -1,4 +1,4 @@
-import React from 'react';
+import React from "react";
 
 const LoadingScreen = () => {
   return (
@@ -15,7 +15,7 @@ const LoadingScreen = () => {
           <h1 className="text-2xl font-black tracking-tighter text-slate-900 flex items-center gap-1">
             ESTATE<span className="text-slate-400">FLOW</span>
           </h1>
-          
+
           {/* Progress Bar Line */}
           <div className="mt-4 w-32 h-1 bg-slate-100 rounded-full overflow-hidden">
             <div className="h-full bg-black w-1/2 animate-[loading_1.5s_ease-in-out_infinite]"></div>
@@ -26,8 +26,12 @@ const LoadingScreen = () => {
       {/* Tailwind Custom Animation Keyframe (Add to tailwind.config.js or use style tag) */}
       <style jsx>{`
         @keyframes loading {
-          0% { transform: translateX(-100%); }
-          100% { transform: translateX(200%); }
+          0% {
+            transform: translateX(-100%);
+          }
+          100% {
+            transform: translateX(200%);
+          }
         }
       `}</style>
     </div>
