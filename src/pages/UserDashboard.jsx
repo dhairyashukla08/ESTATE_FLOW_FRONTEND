@@ -3,12 +3,11 @@ import { useAuth } from "../hooks/AuthContext.jsx";
 import { Navigate } from "react-router-dom";
 
 const UserDashboard = () => {
-  const { user, updateProfile } = useAuth(); // Assuming login updates state/localStorage
+  const { user, updateProfile } = useAuth(); 
   const [isEditing, setIsEditing] = useState(false);
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState({ type: "", text: "" });
 
-  // Local state for the form
   const [formData, setFormData] = useState({
     name: user?.name || "",
     phone: user?.phoneNumber || "",

@@ -3,6 +3,7 @@ import { useParams } from "react-router-dom";
 import { usePropertyContext } from "../hooks/PropertyContext";
 import InquiryModal from "../components/InquiryModal.jsx";
 import axios from "axios";
+import API from "../api/axios.js";
 
 const PropertyDetail = () => {
   const { id } = useParams();
@@ -19,9 +20,8 @@ const PropertyDetail = () => {
       if (found) {
         const updateViews = async () => {
           try {
-            // Determine type for API endpoint based on schema characteristics
             const type = found.features?.carpetArea ? "Commercial" : found.features?.plotArea ? "Plot" : "Property";
-            await axios.post(`http://localhost:8000/api/properties/${id}/view?type=${type}`);
+            await API.post(`/api/properties/${id}/view?type=${type}`);
           } catch (err) {
             console.error("Error updating view count:", err);
           }
@@ -34,7 +34,6 @@ const PropertyDetail = () => {
   if (contextLoading) return <div className="min-h-screen flex items-center justify-center">Loading...</div>;
   if (!property) return <div className="min-h-screen flex items-center justify-center">Property not found</div>;
 
-  // --- LOGIC HELPERS BASED ON YOUR SCHEMAS ---
   
   const isCommercial = !!property.features?.carpetArea;
   const isPlot = !!property.features?.plotArea;

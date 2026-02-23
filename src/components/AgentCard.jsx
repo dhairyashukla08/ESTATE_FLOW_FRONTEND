@@ -7,13 +7,12 @@ const AgentCard = ({ agent, onContact }) => {
   const handleContact = (e) => {
     e.stopPropagation();
     onContact();
-    // This will eventually open your inquiry modal
     console.log(`Contacting agent: ${agent.name}`);
   };
 
   return (
     <div
-      onClick={() => navigate(`/agents/${agent.id}`)} // Preparing for Agent Profile Page
+      onClick={() => navigate(`/agents/${agent.id}`)} 
       className="bg-white rounded-3xl p-8 shadow-sm hover:shadow-2xl hover:-translate-y-1 transition-all duration-300 group cursor-pointer border border-transparent hover:border-gray-100"
     >
       {/* Top Section */}

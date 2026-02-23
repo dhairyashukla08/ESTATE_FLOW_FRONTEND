@@ -1,8 +1,11 @@
 import React, { useEffect, useState } from "react";
 import AgentCard from "../components/AgentCard.jsx";
 import InquiryModal from "../components/InquiryModal.jsx";
+import API from "../api/axios.js";
+import { useNavigate } from "react-router-dom";
 
 const Agents = () => {
+  const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState("");
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedAgent, setSelectedAgent] = useState(null);
@@ -13,13 +16,11 @@ const Agents = () => {
   const fetchAgents = async () => {
     try {
       setLoading(true);
-      // Change to absolute URL if proxy isn't configured
-      const response = await fetch("http://localhost:8000/api/agents");
+      const response = await API.get("/api/agents");
 
       if (!response.ok) throw new Error("Network response was not ok");
 
-      const data = await response.json();
-      setAgents(data);
+      setAgents(response.data);
     } catch (err) {
       setError("Failed to load agents. Please try again later.");
       console.error(err);
@@ -32,7 +33,6 @@ const Agents = () => {
     fetchAgents();
   }, []);
 
-  // Defensive check: ensure fields exist before calling toLowerCase()
   const filteredAgents = agents.filter((agent) => {
     const name = agent.name?.toLowerCase() || "";
     const location = agent.location?.toLowerCase() || "location not set";
@@ -111,7 +111,7 @@ const Agents = () => {
           <h2 className="text-3xl font-semibold mb-4">
             Are you a Real Estate Professional?
           </h2>
-          <button className="px-10 py-3 rounded-xl bg-white text-black hover:bg-gray-200 transition font-bold uppercase text-xs tracking-widest">
+          <button onClick={() => navigate("/register")} className="px-10 py-3 rounded-xl bg-white text-black hover:bg-gray-200 transition font-bold uppercase text-xs tracking-widest">
             Register as an Agent
           </button>
         </div>

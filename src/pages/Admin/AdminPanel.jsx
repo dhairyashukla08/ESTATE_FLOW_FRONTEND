@@ -1,5 +1,6 @@
 import axios from "axios";
 import React, { useEffect, useState } from "react";
+import API from "../../api/axios.js";
 
 const AdminPanel = () => {
   const [activeTab, setActiveTab] = useState("properties");
@@ -10,9 +11,7 @@ const AdminPanel = () => {
     const fetchAdminData = async () => {
       try {
         const userObj = JSON.parse(localStorage.getItem("user"));
-        const res = await axios.get("/api/admin/stats", {
-          headers: { Authorization: `Bearer ${userObj.token}` },
-        });
+        const res = await API.get("/api/admin/stats");
         setData(res.data);
       } catch (err) {
         console.error("Admin Fetch Error:", err);
@@ -31,9 +30,7 @@ const AdminPanel = () => {
       if (category === "Commercial") url = `/api/commercial/${id}`;
       if (category === "Plot") url = `/api/plots/${id}`;
 
-      await axios.delete(url, {
-        headers: { Authorization: `Bearer ${userObj.token}` },
-      });
+      await API.delete(url);
       setData((prev) => ({
         ...prev,
         listings: prev.listings.filter((l) => l._id !== id),

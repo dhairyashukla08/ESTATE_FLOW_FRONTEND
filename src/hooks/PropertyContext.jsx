@@ -1,24 +1,24 @@
 import axios from "axios";
 import { createContext, useContext, useEffect, useState } from "react";
+import API from "../api/axios.js";
 
 const PropertyContext = createContext();
 
 export const PropertyProvider = ({ children }) => {
   const [properties, setProperties] = useState([]);
-  const [commercialProperties, setCommercialProperties] = useState([]); // For Commercial Page
-  const [plotProperties, setPlotProperties] = useState([]); // For Plots Page
+  const [commercialProperties, setCommercialProperties] = useState([]); 
+  const [plotProperties, setPlotProperties] = useState([]); 
   const [featuredProperties, setFeaturedProperties] = useState([]);
   const [loading, setLoading] = useState(false);
 
   const [filters, setFilters] = useState({
     city: "",
-    category: "Residential", // Default category
+    category: "Residential",
     purpose: "",
     minPrice: "",
     maxPrice: "",
   });
 
-  // Helper to determine the endpoint
   const getEndpoint = (category) => {
     switch (category) {
       case "Commercial":
@@ -41,7 +41,7 @@ export const PropertyProvider = ({ children }) => {
       if (searchFilters.minPrice) params.minPrice = searchFilters.minPrice;
       if (searchFilters.maxPrice) params.maxPrice = searchFilters.maxPrice;
 
-      const response = await axios.get(endpoint, { params });
+      const response = await API.get(endpoint, { params });
       setProperties(response.data);
     } catch (error) {
       console.error("Error fetching properties:", error);
@@ -50,12 +50,11 @@ export const PropertyProvider = ({ children }) => {
     }
   };
 
-  // NEW: Fetch specific data for the Commercial and Plots pages
   const fetchCategoryData = async () => {
     try {
       const [commRes, plotRes] = await Promise.all([
-        axios.get("/api/commercial/all"),
-        axios.get("/api/plots/all"),
+        API.get("/api/commercial/all"),
+        API.get("/api/plots/all"),
       ]);
       setCommercialProperties(commRes.data);
       setPlotProperties(plotRes.data);
@@ -66,8 +65,7 @@ export const PropertyProvider = ({ children }) => {
 
   const fetchFeatured = async () => {
     try {
-      // Just fetching residential for featured, or you could merge all 3
-      const response = await axios.get("/api/properties/all");
+      const response = await API.get("/api/properties/all");
       setFeaturedProperties(response.data.slice(0, 3));
     } catch (error) {
       console.error("Error fetching featured properties:", error);
@@ -77,7 +75,7 @@ export const PropertyProvider = ({ children }) => {
   useEffect(() => {
     fetchFeatured();
     fetchProperties();
-    fetchCategoryData(); // Load all data on mount
+    fetchCategoryData();
   }, []);
 
   const updateFilters = (newFilters) => {

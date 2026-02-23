@@ -6,31 +6,25 @@ const PropertyCard = ({ property, layout = "vertical" }) => {
   const [isExpanded, setIsExpanded] = useState(false);
   const [autoPlay, setAutoPlay] = useState(true);
 
-  // --- UNIFIED DATA LOGIC ---
-  // 1. Images
   const images =
     property.images?.length > 0
       ? property.images
       : ["https://images.unsplash.com/photo-1560518883-ce09059eeffa"];
 
-  // 2. Area (Checks all potential schema keys)
   const displayArea =
     property.features?.areaSize ||
     property.features?.carpetArea ||
     property.features?.plotArea ||
     "N/A";
 
-  // 3. Agent/Seller Name (Handles populated 'seller' object or flat strings)
   const displayAgent =
     property.seller?.name ||
     property.agentName ||
     property.agent?.name ||
     "Verified Agent";
 
-  // 4. Contact Number
   const contactNumber = property.seller?.phoneNumber || property.contact || "";
 
-  // 5. Configuration/BHK Display
   const bhkDisplay =
     property.features?.bedrooms > 0
       ? `${property.features.bedrooms} BHK`
@@ -38,7 +32,6 @@ const PropertyCard = ({ property, layout = "vertical" }) => {
         ? property.propertyType
         : "Commercial";
 
-  // Carousel Handlers
   const nextImage = (e) => {
     e.preventDefault();
     setCurrentImageIndex((prev) => (prev + 1) % images.length);

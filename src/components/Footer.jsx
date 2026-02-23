@@ -7,8 +7,6 @@ const Footer = () => {
 
   const handleContactSubmit = (e) => {
     e.preventDefault();
-    // Add your logic to send this to your backend /api/contact
-    console.log("Contact Request:", contactData);
     alert("Message sent successfully!");
     setContactData({ email: "", message: "" });
   };

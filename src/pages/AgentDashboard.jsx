@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
+import API from "../api/axios.js";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 
@@ -15,14 +16,11 @@ const AgentDashboard = () => {
       return;
     const toastId = toast.loading("Removing listing...");
     try {
-      const userObj = JSON.parse(localStorage.getItem("user"));
       let endpoint = `/api/properties/${id}`;
       if (category === "Commercial") endpoint = `/api/commercial/${id}`;
       if (category === "Plot") endpoint = `/api/plots/${id}`;
 
-      await axios.delete(endpoint, {
-        headers: { Authorization: `Bearer ${userObj.token}` },
-      });
+      await API.delete(endpoint);
 
       setData((prev) => ({
         ...prev,
@@ -62,11 +60,7 @@ const AgentDashboard = () => {
           return;
         }
 
-        const res = await axios.get("/api/agents/stats", {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        });
+        const res = await API.get("/api/agents/stats");
 
         setData(res.data);
       } catch (err) {

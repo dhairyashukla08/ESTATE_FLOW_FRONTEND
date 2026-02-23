@@ -19,11 +19,11 @@ const Home = () => {
     if (search.location) params.append("city", search.location);
     if (search.type === "Commercial") {
       navigate(`/commercial?${params.toString()}`);
-      return; // Stop execution here
+      return; 
     }
     if (search.type === "Plots") {
       navigate(`/plots?${params.toString()}`);
-      return; // Stop execution here
+      return; 
     }
     params.append("purpose", search.type);
     navigate(`/search?${params.toString()}`);

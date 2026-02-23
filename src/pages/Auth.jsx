@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../hooks/AuthContext.jsx";
-import { toast } from "react-toastify"; // Import toast
+import { toast } from "react-toastify";
 
 const Auth = () => {
   const { login, register } = useAuth();
@@ -43,16 +43,13 @@ const Auth = () => {
       }
 
       if (result.success) {
-        // SUCCESS TOAST
         toast.success(isLogin ? "Welcome back!" : "Account created successfully!");
         navigate("/");
       } else {
-        // ERROR TOAST FROM SERVER RESPONSE
         setError(result.message);
         toast.error(result.message || "Authentication failed");
       }
     } catch (err) {
-      // GENERIC ERROR TOAST
       setError("An unexpected error occurred.");
       toast.error("Something went wrong. Please check your connection.");
     } finally {

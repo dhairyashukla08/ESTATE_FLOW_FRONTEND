@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import axios from "axios"; 
-import { toast } from "react-toastify";// Import axios
+import { toast } from "react-toastify";
+import {API} from "../api/axios.js"
 
 const InquiryModal = ({
   isOpen,
@@ -25,23 +26,20 @@ const InquiryModal = ({
     setLoading(true);
 
     try {
-      // Prepare the data to match your Backend Controller
       const inquiryData = {
         ...formData,
-        agentId, // Passed from AgentCard
-        propertyId, // Passed from PropertyDetail or AgentCard
+        agentId, 
+        propertyId,
       };
 
-      const response = await axios.post("/api/inquiries/send", inquiryData);
+      const response = await API.post("/api/inquiries/send", inquiryData);
 
       if (response.status === 201) {
         toast.success(`Message sent to ${agentName}!`);
         onClose();
-        // Optional: Reset form
         setFormData({ name: "", email: "", phone: "", message: "" });
       }
     } catch (error) {
-      console.error("Inquiry Error:", error);
       toast.error(error.response?.data?.message || "Failed to send inquiry.");
     } finally {
       setLoading(false);

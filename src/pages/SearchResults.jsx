@@ -16,7 +16,6 @@ const SearchResults = () => {
     maxPrice: searchParams.get("maxPrice") || "",
   });
 
-  // Sync with URL changes (back button / nav)
   useEffect(() => {
     const params = {
       city: searchParams.get("city") || "",

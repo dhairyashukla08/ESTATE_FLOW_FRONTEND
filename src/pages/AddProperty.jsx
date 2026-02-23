@@ -1,4 +1,5 @@
 import axios from "axios";
+import API from "../api/axios.js";
 import React, { useEffect, useState } from "react";
 import { useAuth } from "../hooks/AuthContext.jsx";
 import { useNavigate,useLocation } from "react-router-dom";
@@ -64,7 +65,7 @@ const AddProperty = () => {
   const handleSubmit = async (e) => {
   e.preventDefault();
  if (!user) {
-      toast.error("Please login first"); // Replaced alert
+      toast.error("Please login first"); 
       return;
     }
 
@@ -123,7 +124,7 @@ const AddProperty = () => {
     } else {
       finalPayload = { ...formData, images: uploadedImageUrls };
     }
-    await axios[method](endpoint, finalPayload, {
+    await API[method](endpoint, finalPayload, {
       headers: { Authorization: `Bearer ${user.token}` },
     });
 
