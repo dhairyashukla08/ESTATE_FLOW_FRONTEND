@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import axios from "axios"; 
 import { toast } from "react-toastify";
-import {API} from "../api/axios.js"
+import API from "../api/axios.js";
 
 const InquiryModal = ({
   isOpen,
