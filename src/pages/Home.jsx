@@ -17,16 +17,16 @@ const Home = () => {
   const handleSearch = () => {
     const params = new URLSearchParams();
     if (search.location) params.append("city", search.location);
-    params.append("purpose", search.type === "Rent" ? "Rent" : "Buy");
     if (search.type === "Commercial") {
-      params.append("category", "Commercial");
-    } else if (search.type === "Plots") {
-      params.append("category", "Plot");
-    } else {
-      // Default Buy/Rent search
-      const queryString = `city=${search.location}&purpose=${search.type}`;
-      navigate(`/search?${params.toString()}`);
+      navigate(`/commercial?${params.toString()}`);
+      return; // Stop execution here
     }
+    if (search.type === "Plots") {
+      navigate(`/plots?${params.toString()}`);
+      return; // Stop execution here
+    }
+    params.append("purpose", search.type);
+    navigate(`/search?${params.toString()}`);
   };
 
   const getLeftPos = () => {
@@ -114,7 +114,16 @@ const Home = () => {
                   key={city}
                   onClick={() => {
                     setSearch({ ...search, location: city });
-                    navigate(`/search?city=${city}&purpose=${search.type}`);
+                    const params = new URLSearchParams();
+                    params.append("city", city);
+                    if (search.type === "Commercial") {
+                      navigate(`/commercial?${params.toString()}`);
+                    } else if (search.type === "Plots") {
+                      navigate(`/plots?${params.toString()}`);
+                    } else {
+                      params.append("purpose", search.type);
+                      navigate(`/search?${params.toString()}`);
+                    }
                   }}
                   className="hover:text-white cursor-pointer transition"
                 >

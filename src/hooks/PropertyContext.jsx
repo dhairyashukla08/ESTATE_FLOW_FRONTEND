@@ -99,6 +99,8 @@ export const PropertyProvider = ({ children }) => {
         filters,
         updateFilters,
         fetchProperties,
+        fetchFeatured,
+        fetchCategoryData,
       }}
     >
       {children}

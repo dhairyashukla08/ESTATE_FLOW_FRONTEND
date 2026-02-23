@@ -1,5 +1,6 @@
 import React, { useState } from "react";
-import axios from "axios"; // Import axios
+import axios from "axios"; 
+import { toast } from "react-toastify";// Import axios
 
 const InquiryModal = ({
   isOpen,
@@ -34,14 +35,14 @@ const InquiryModal = ({
       const response = await axios.post("/api/inquiries/send", inquiryData);
 
       if (response.status === 201) {
-        alert("Success! Your message has been sent to " + agentName);
+        toast.success(`Message sent to ${agentName}!`);
         onClose();
         // Optional: Reset form
         setFormData({ name: "", email: "", phone: "", message: "" });
       }
     } catch (error) {
       console.error("Inquiry Error:", error);
-      alert(error.response?.data?.message || "Failed to send inquiry.");
+      toast.error(error.response?.data?.message || "Failed to send inquiry.");
     } finally {
       setLoading(false);
     }

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
+import { toast } from "react-toastify";
 
 const AgentDashboard = () => {
   const navigate = useNavigate();
@@ -12,7 +13,7 @@ const AgentDashboard = () => {
   const handleDelete = async (id, category) => {
     if (!window.confirm("Are you sure you want to delete this listing?"))
       return;
-
+    const toastId = toast.loading("Removing listing...");
     try {
       const userObj = JSON.parse(localStorage.getItem("user"));
       let endpoint = `/api/properties/${id}`;
@@ -27,10 +28,20 @@ const AgentDashboard = () => {
         ...prev,
         listings: prev.listings.filter((item) => item._id !== id),
       }));
-      alert("Deleted successfully");
+      toast.update(toastId, {
+        render: "Property deleted successfully",
+        type: "success",
+        isLoading: false,
+        autoClose: 3000,
+      });
     } catch (err) {
       console.error("Delete error:", err);
-      alert("Failed to delete property");
+      toast.update(toastId, {
+        render: "Failed to delete property",
+        type: "error",
+        isLoading: false,
+        autoClose: 3000,
+      });
     }
   };
 

@@ -1,7 +1,7 @@
 import React, { useState } from "react";
-import { Link } from "react-router-dom";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../hooks/AuthContext.jsx";
+import { toast } from "react-toastify"; // Import toast
 
 const Auth = () => {
   const { login, register } = useAuth();
@@ -43,12 +43,18 @@ const Auth = () => {
       }
 
       if (result.success) {
+        // SUCCESS TOAST
+        toast.success(isLogin ? "Welcome back!" : "Account created successfully!");
         navigate("/");
       } else {
+        // ERROR TOAST FROM SERVER RESPONSE
         setError(result.message);
+        toast.error(result.message || "Authentication failed");
       }
     } catch (err) {
-      setError("An unexpected error occurred. Please try again.");
+      // GENERIC ERROR TOAST
+      setError("An unexpected error occurred.");
+      toast.error("Something went wrong. Please check your connection.");
     } finally {
       setLoading(false);
     }
@@ -56,20 +62,20 @@ const Auth = () => {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4 py-12">
-      <div className="w-full max-w-md bg-white p-8 rounded-2xl shadow-lg">
+      <div className="w-full max-w-md bg-white p-8 rounded-2xl shadow-lg border border-gray-100">
         {/* Header */}
         <div className="mb-8 text-center">
-          <h1 className="text-2xl font-semibold text-gray-800">
-            {isLogin ? "Welcome Back" : "Join Us!"}
+          <h1 className="text-2xl font-black text-gray-900 tracking-tight">
+            {isLogin ? "Welcome Back" : "Join EstateFlow"}
           </h1>
-          <p className="text-sm text-gray-500 mt-2">
+          <p className="text-sm text-gray-500 mt-2 font-medium">
             {isLogin
               ? "Enter your details to access your profile"
               : "Start your property journey today"}
           </p>
         </div>
 
-        {/* Role Selection (Only shown for Register) */}
+        {/* Role Selection */}
         {!isLogin && (
           <div className="flex gap-3 mb-6">
             {["buyer", "agent"].map((r) => (
@@ -77,10 +83,10 @@ const Auth = () => {
                 key={r}
                 type="button"
                 onClick={() => setRole(r)}
-                className={`flex-1 py-2 rounded-xl border transition capitalize ${
+                className={`flex-1 py-3 rounded-xl border-2 text-xs font-black uppercase tracking-widest transition-all ${
                   role === r
-                    ? "bg-black text-white border-black"
-                    : "border-gray-300 text-gray-700 hover:border-black"
+                    ? "bg-black text-white border-black shadow-md"
+                    : "border-gray-100 text-gray-400 hover:border-gray-200"
                 }`}
               >
                 {r === "agent" ? "Agent / Seller" : r}
@@ -91,10 +97,9 @@ const Auth = () => {
 
         {/* Form */}
         <form className="space-y-5" onSubmit={handleSubmit}>
-          {/* Full Name (Only for Register) */}
           {!isLogin && (
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-[10px] font-black uppercase tracking-[0.2em] text-gray-400 mb-1.5 ml-1">
                 Full Name
               </label>
               <input
@@ -105,14 +110,13 @@ const Auth = () => {
                   setFormData({ ...formData, name: e.target.value })
                 }
                 required
-                className="w-full px-4 py-2.5 rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-black transition"
+                className="w-full px-4 py-3 rounded-xl bg-gray-50 border border-transparent focus:bg-white focus:border-black transition-all outline-none"
               />
             </div>
           )}
 
-          {/* Email */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label className="block text-[10px] font-black uppercase tracking-[0.2em] text-gray-400 mb-1.5 ml-1">
               Email Address
             </label>
             <input
@@ -123,13 +127,12 @@ const Auth = () => {
                 setFormData({ ...formData, email: e.target.value })
               }
               required
-              className="w-full px-4 py-2.5 rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-black transition"
+              className="w-full px-4 py-3 rounded-xl bg-gray-50 border border-transparent focus:bg-white focus:border-black transition-all outline-none"
             />
           </div>
 
-          {/* Password */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label className="block text-[10px] font-black uppercase tracking-[0.2em] text-gray-400 mb-1.5 ml-1">
               Password
             </label>
             <input
@@ -140,14 +143,13 @@ const Auth = () => {
                 setFormData({ ...formData, password: e.target.value })
               }
               required
-              className="w-full px-4 py-2.5 rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-black transition"
+              className="w-full px-4 py-3 rounded-xl bg-gray-50 border border-transparent focus:bg-white focus:border-black transition-all outline-none"
             />
             {isLogin && (
               <div className="flex justify-end mt-2">
                 <Link
                   to="/forgot-password"
-                  size="sm"
-                  className="text-sm text-gray-500 hover:text-black transition"
+                  className="text-xs font-bold text-gray-400 hover:text-black transition"
                 >
                   Forgot Password?
                 </Link>
@@ -155,42 +157,32 @@ const Auth = () => {
             )}
           </div>
 
-          {/* Terms (Only for Register) */}
           {!isLogin && (
-            <div className="flex items-start gap-2 text-sm text-gray-600">
-              <input type="checkbox" required className="mt-1 accent-black" />
+            <div className="flex items-start gap-3 px-1 text-xs text-gray-500 font-medium">
+              <input type="checkbox" required className="mt-0.5 w-4 h-4 accent-black rounded cursor-pointer" />
               <p>
-                I agree to the{" "}
-                <span className="text-black font-medium cursor-pointer hover:underline">
-                  Terms
-                </span>{" "}
-                and{" "}
-                <span className="text-black font-medium cursor-pointer hover:underline">
-                  Privacy
-                </span>
-                .
+                I agree to the <span className="text-black underline cursor-pointer">Terms</span> and <span className="text-black underline cursor-pointer">Privacy Policy</span>.
               </p>
             </div>
           )}
 
-          {/* Submit Button */}
           <button
             type="submit"
             disabled={loading}
-            className="w-full py-2.5 rounded-xl bg-black text-white font-medium hover:bg-gray-800 transition disabled:opacity-60"
+            className="w-full py-4 rounded-2xl bg-black text-white text-xs font-black uppercase tracking-[0.2em] hover:bg-gray-800 transition-all shadow-lg active:scale-[0.98] disabled:opacity-50"
           >
-            {loading ? "Processing..." : isLogin ? "Sign In" : "Create Account"}
+            {loading ? "Authenticating..." : isLogin ? "Sign In" : "Create Account"}
           </button>
         </form>
 
         {/* Footer Toggle */}
-        <p className="text-sm text-center text-gray-500 mt-6">
-          {isLogin ? "Don’t have an account?" : "Already a member?"}{" "}
+        <p className="text-xs text-center font-bold text-gray-400 mt-8 uppercase tracking-widest">
+          {isLogin ? "New to EstateFlow?" : "Already have an account?"}{" "}
           <button
             onClick={toggleMode}
-            className="text-black font-medium hover:underline focus:outline-none"
+            className="text-black hover:underline focus:outline-none ml-1"
           >
-            {isLogin ? "Create Account" : "Log In"}
+            {isLogin ? "Register" : "Login"}
           </button>
         </p>
       </div>

@@ -1,27 +1,27 @@
 import React, { useEffect, useState } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams } from "react-router-dom";
 import { usePropertyContext } from "../hooks/PropertyContext";
 import InquiryModal from "../components/InquiryModal.jsx";
 import axios from "axios";
 
 const PropertyDetail = () => {
   const { id } = useParams();
-  const { properties, loading: contextLoading } = usePropertyContext();
+  const { properties, commercialProperties, plotProperties, loading: contextLoading } = usePropertyContext();
   const [property, setProperty] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
 
   useEffect(() => {
-    if (properties.length > 0) {
-      const found = properties.find((p) => p._id === id);
+    const allProperties = [...properties, ...commercialProperties, ...plotProperties];
+    if (allProperties.length > 0) {
+      const found = allProperties.find((p) => p._id === id);
       setProperty(found);
 
       if (found) {
         const updateViews = async () => {
           try {
-            const type = found.category;
-            await axios.post(
-              `http://localhost:8000/api/properties/${id}/view?type=${type}`,
-            );
+            // Determine type for API endpoint based on schema characteristics
+            const type = found.features?.carpetArea ? "Commercial" : found.features?.plotArea ? "Plot" : "Property";
+            await axios.post(`http://localhost:8000/api/properties/${id}/view?type=${type}`);
           } catch (err) {
             console.error("Error updating view count:", err);
           }
@@ -29,41 +29,27 @@ const PropertyDetail = () => {
         updateViews();
       }
     }
-  }, [id, properties]);
+  }, [id, properties, commercialProperties, plotProperties]);
 
-  if (contextLoading || !property) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        Loading...
-      </div>
-    );
-  }
+  if (contextLoading) return <div className="min-h-screen flex items-center justify-center">Loading...</div>;
+  if (!property) return <div className="min-h-screen flex items-center justify-center">Property not found</div>;
+
+  // --- LOGIC HELPERS BASED ON YOUR SCHEMAS ---
+  
+  const isCommercial = !!property.features?.carpetArea;
+  const isPlot = !!property.features?.plotArea;
+  const isResidential = !isCommercial && !isPlot;
 
   const getDynamicTitle = () => {
-    const { category, features, purpose, address, propertyType } = property;
-    let typeStr = "";
-    if (category === "Plot") {
-      typeStr = "Residential Plot";
-    } else if (category === "Commercial") {
-      typeStr = propertyType || "Commercial Space";
-    } else {
-      typeStr = `${features?.bedrooms || 0} BHK ${category}`;
-    }
-    const purposeStr =
-      purpose?.toLowerCase() === "sale" || purpose?.toLowerCase() === "buy"
-        ? "Sale"
-        : "Rent";
-    return `${typeStr} for ${purposeStr} in ${address?.area || "this location"}`;
+    const area = property.address?.area || "this location";
+    if (isCommercial) return `Commercial Property For ${property.purpose} in ${area}`;
+    if (isPlot) return `Land For Sale in ${area}`;
+    return `${property.features?.bedrooms || 0} BHK ${property.category} For ${property.purpose} in ${area}`;
   };
-
-  const images =
-    property.images?.length > 0
-      ? property.images
-      : ["https://images.unsplash.com/photo-1560518883-ce09059eeffa"];
 
   return (
     <div className="min-h-screen bg-[#F4F4F4]">
-      {/* 1. PREMIUM HEADER SECTION */}
+      {/* 1. HEADER SECTION */}
       <div className="bg-white border-b border-gray-200 pt-6 pb-2">
         <div className="max-w-7xl mx-auto px-6">
           <div className="flex flex-col md:flex-row justify-between items-start gap-4">
@@ -71,49 +57,34 @@ const PropertyDetail = () => {
               <h1 className="text-2xl font-bold text-gray-800 tracking-tight">
                 {getDynamicTitle()}
               </h1>
-              <p className="text-gray-500 text-sm flex items-center gap-1 mt-1">
-                <span className="font-semibold text-gray-700">
-                  {property.address?.area}
-                </span>
-                , {property.address?.city}
+              <p className="text-gray-500 text-sm mt-1">
+                <span className="font-semibold text-gray-700">{property.address?.area}</span>, {property.address?.city}
               </p>
             </div>
             <div className="text-right">
-              <p className="text-3xl font-extrabold text-gray-900">
-                ₹{property.price?.toLocaleString("en-IN")}
-              </p>
-              <p className="text-blue-600 text-xs font-bold mt-1 uppercase">
-                EMI starts at ₹
-                {Math.round(property.price * 0.007).toLocaleString("en-IN")}
-              </p>
+              <p className="text-3xl font-extrabold text-gray-900">₹{property.price?.toLocaleString("en-IN")}</p>
             </div>
           </div>
 
-          {/* QUICK STATS RIBBON */}
+          {/* 2. RIBBON STATS (Dynamic per Schema) */}
           <div className="flex gap-12 mt-8 border-t border-gray-100 py-4 overflow-x-auto no-scrollbar">
             <div className="flex flex-col">
               <span className="text-gray-400 text-[11px] uppercase font-bold tracking-wider">
-                Area
+                {isPlot ? "Plot Area" : "Carpet Area"}
               </span>
               <span className="text-gray-800 font-bold">
-                {property.features?.areaSize || property.features?.carpetArea}{" "}
-                <span className="text-xs font-normal">sq.ft</span>
+                {property.features?.carpetArea || property.features?.plotArea || property.features?.areaSize} 
+                <span className="text-xs font-normal ml-1">sq.ft</span>
               </span>
             </div>
             <div className="flex flex-col border-l border-gray-200 pl-12">
-              <span className="text-gray-400 text-[11px] uppercase font-bold tracking-wider">
-                {property.category === "Plot" ? "Type" : "Configuration"}
-              </span>
+              <span className="text-gray-400 text-[11px] uppercase font-bold tracking-wider">Configuration</span>
               <span className="text-gray-800 font-bold">
-                {property.category === "Plot"
-                  ? "Residential Plot"
-                  : `${property.features?.bedrooms || 0} BHK, ${property.features?.bathrooms || 0} Baths`}
+                {property.propertyType || `${property.features?.bedrooms} BHK`}
               </span>
             </div>
             <div className="flex flex-col border-l border-gray-200 pl-12">
-              <span className="text-gray-400 text-[11px] uppercase font-bold tracking-wider">
-                Status
-              </span>
+              <span className="text-gray-400 text-[11px] uppercase font-bold tracking-wider">Status</span>
               <span className="text-green-600 font-bold">Ready to Move</span>
             </div>
           </div>
@@ -121,61 +92,64 @@ const PropertyDetail = () => {
       </div>
 
       <div className="max-w-7xl mx-auto px-6 py-8 grid lg:grid-cols-3 gap-8">
-        {/* LEFT COLUMN */}
         <div className="lg:col-span-2 space-y-6">
-          {/* 2. GALLERY SECTION (99acres Horizontal Style) */}
+          {/* IMAGE GALLERY */}
           <div className="bg-white rounded-xl overflow-hidden shadow-sm p-2">
-            <div className="flex flex-col md:flex-row gap-2 h-[450px]">
+            <div className="flex flex-col md:flex-row gap-2 h-[400px]">
               <div className="md:w-3/4 h-full bg-gray-100 rounded-lg overflow-hidden">
-                <img
-                  src={images[0]}
-                  className="w-full h-full object-cover"
-                  alt="Primary View"
-                />
+                <img src={property.images?.[0] || "https://images.unsplash.com/photo-1560518883-ce09059eeffa"} className="w-full h-full object-cover" alt="Property" />
               </div>
               <div className="md:w-1/4 flex md:flex-col gap-2 h-full">
-                {images.slice(1, 4).map((img, i) => (
-                  <div
-                    key={i}
-                    className="flex-1 rounded-lg overflow-hidden bg-gray-100"
-                  >
-                    <img
-                      src={img}
-                      className="w-full h-full object-cover"
-                      alt={`View ${i}`}
-                    />
+                {property.images?.slice(1, 4).map((img, i) => (
+                  <div key={i} className="flex-1 rounded-lg overflow-hidden bg-gray-100">
+                    <img src={img} className="w-full h-full object-cover" alt="Property View" />
                   </div>
                 ))}
               </div>
             </div>
           </div>
 
-          {/* 3. PROPERTY DETAILS GRID */}
+          {/* 3. ABOUT THE PROPERTY (Dynamic per Schema) */}
           <div className="bg-white rounded-xl shadow-sm p-8">
-            <h2 className="text-xl font-bold text-gray-800 mb-6 border-b pb-4">
-              About the Property
-            </h2>
+            <h2 className="text-xl font-bold text-gray-800 mb-6 border-b pb-4">About the Property</h2>
             <div className="grid grid-cols-2 md:grid-cols-3 gap-y-8 gap-x-4">
-              <DetailItem
-                label="Price per Sq.Ft"
-                value={`₹${Math.round(property.price / property.features?.areaSize).toLocaleString("en-IN")}`}
+              <DetailItem 
+                label="Price per Sq.Ft" 
+                value={`₹${Math.round(property.price / (property.features?.carpetArea || property.features?.plotArea || property.features?.areaSize || 1)).toLocaleString("en-IN")}`} 
               />
-              <DetailItem label="Floor" value="12th of 24" />
-              <DetailItem label="Furnishing" value="Semi-Furnished" />
-              <DetailItem label="Facing" value="East" />
-              <DetailItem label="Balcony" value="2 Balconies" />
-              <DetailItem label="Ownership" value="Freehold" />
+              <DetailItem label="Locality" value={property.address?.area} />
+              <DetailItem label="City" value={property.address?.city} />
+              
+              {isCommercial && (
+                <>
+                  <DetailItem label="Maintenance" value={`₹${property.features?.maintenance || 0}`} />
+                  <DetailItem label="Parking" value={property.features?.parking || "Available"} />
+                  <DetailItem label="Washrooms" value={property.features?.bathrooms || "Shared"} />
+                </>
+              )}
+
+              {isPlot && (
+                <>
+                  <DetailItem label="Boundary Wall" value={property.features?.boundaryWall ? "Yes" : "No"} />
+                  <DetailItem label="Corner Plot" value={property.features?.cornerPlot ? "Yes" : "No"} />
+                  <DetailItem label="Type" value={property.propertyType} />
+                </>
+              )}
+
+              {isResidential && (
+                <>
+                  <DetailItem label="Furnishing" value={property.features?.furnishedStatus} />
+                  <DetailItem label="Bathrooms" value={property.features?.bathrooms} />
+                  <DetailItem label="Bedrooms" value={property.features?.bedrooms} />
+                </>
+              )}
             </div>
           </div>
 
-          {/* 4. DESCRIPTION BOX */}
+          {/* DESCRIPTION */}
           <div className="bg-white rounded-xl shadow-sm p-8">
-            <h2 className="text-xl font-bold text-gray-800 mb-4">
-              Description
-            </h2>
-            <p className="text-gray-600 leading-relaxed text-sm whitespace-pre-line">
-              {property.description}
-            </p>
+            <h2 className="text-xl font-bold text-gray-800 mb-4">Description</h2>
+            <p className="text-gray-600 leading-relaxed text-sm whitespace-pre-line">{property.description}</p>
           </div>
         </div>
 
@@ -238,11 +212,12 @@ const PropertyDetail = () => {
           </div>
         </div>
       </div>
+
       <InquiryModal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
-        agentName={property.agentName || property.agent?.name}
-        agentId={property.agent?._id || property.agent}
+        agentName={property.agentName}
+        agentId={property.agent}
         propertyId={property._id}
         propertyTitle={getDynamicTitle()}
       />
@@ -250,11 +225,10 @@ const PropertyDetail = () => {
   );
 };
 
-// Helper Component for the Grid
 const DetailItem = ({ label, value }) => (
   <div className="flex flex-col">
     <span className="text-gray-400 text-xs mb-1 font-medium">{label}</span>
-    <span className="text-gray-800 font-semibold">{value}</span>
+    <span className="text-gray-800 font-semibold">{value || "N/A"}</span>
   </div>
 );
 

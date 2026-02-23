@@ -2,12 +2,16 @@ import axios from "axios";
 import React, { useEffect, useState } from "react";
 import { useAuth } from "../hooks/AuthContext.jsx";
 import { useNavigate,useLocation } from "react-router-dom";
+import { toast } from "react-toastify";
+import { usePropertyContext } from "../hooks/PropertyContext.jsx";
+
 
 const AddProperty = () => {
   const location = useLocation();
   const editData = location.state?.editData;
   const { user } = useAuth();
   const navigate = useNavigate();
+  const { fetchFeatured, fetchCategoryData, fetchProperties } = usePropertyContext();
   const [loading, setLoading] = useState(false);
   const [selectedFiles, setSelectedFiles] = useState([]);
   const [activeTab, setActiveTab] = useState("Residential");
@@ -59,10 +63,15 @@ const AddProperty = () => {
 
   const handleSubmit = async (e) => {
   e.preventDefault();
-  if (!user) return alert("Please login first");
+ if (!user) {
+      toast.error("Please login first"); // Replaced alert
+      return;
+    }
 
   setLoading(true);
+  const toastId = toast.loading(editData ? "Updating property..." : "Uploading property details...");
   try {
+    
     let uploadedImageUrls = editData?.images || [];
 
     if (selectedFiles.length > 0) {
@@ -71,7 +80,8 @@ const AddProperty = () => {
 
     if (uploadedImageUrls.length === 0) {
       setLoading(false);
-      return alert("Please upload at least one image");
+      toast.update(toastId, { render: "Please upload at least one image", type: "error", isLoading: false, autoClose: 3000 });
+      return ;
     }
 
     let baseUrl = "/api/properties";
@@ -117,11 +127,27 @@ const AddProperty = () => {
       headers: { Authorization: `Bearer ${user.token}` },
     });
 
-    alert(`${activeTab} ${editData ? "Updated" : "Published"} Successfully!`);
+    await Promise.all([
+      fetchFeatured(), 
+      fetchCategoryData(), 
+      fetchProperties()
+    ]);
+
+    toast.update(toastId, { 
+        render: `${activeTab} ${editData ? "Updated" : "Published"} Successfully!`, 
+        type: "success", 
+        isLoading: false, 
+        autoClose: 3000 
+      });
     navigate("/agent/manage");
   } catch (err) {
     console.error(err);
-    alert(err.response?.data?.message || "Error saving property");
+    toast.update(toastId, { 
+        render: err.response?.data?.message || "Error saving property", 
+        type: "error", 
+        isLoading: false, 
+        autoClose: 3000 
+      });
   } finally {
     setLoading(false);
   }

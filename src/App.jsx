@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { lazy, Suspense, useEffect, useState } from "react";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import Home from "./pages/Home.jsx";
 import Navbar from "./components/Navbar.jsx";
@@ -17,6 +17,10 @@ import UserDashboard from "./pages/UserDashboard.jsx";
 import ProtectedRoute from "./components/ProtectedRoute.jsx";
 import NotFound from "./pages/NotFound.jsx";
 import LoadingScreen from "./components/LoadingScreen.jsx";
+import ScrollToTop from "./components/ScrollToTop.jsx";
+import {ToastContainer } from "react-toastify"
+import 'react-toastify/dist/ReactToastify.css';
+
 
 const App = () => {
   const [isLoading, setIsLoading] = useState(true);
@@ -32,7 +36,21 @@ const App = () => {
   if (isLoading) return <LoadingScreen />;
 
   return (
+    
     <BrowserRouter>
+    <ScrollToTop/>
+    <ToastContainer 
+    position="top-right"
+    autoClose={3000}
+    hideProgressBar={false}
+    newestOnTop
+    closeOnClick
+    rtl={false}
+    pauseOnFocusLoss
+    draggable
+    pauseOnHover
+    
+    />
       <div>
         <Navbar />
         <main>
