@@ -17,9 +17,6 @@ const Agents = () => {
     try {
       setLoading(true);
       const response = await API.get("/api/agents");
-
-      if (!response.ok) throw new Error("Network response was not ok");
-
       setAgents(response.data);
     } catch (err) {
       setError("Failed to load agents. Please try again later.");
