@@ -1,7 +1,9 @@
-import React, { useState } from "react";
-import axios from "axios"; 
+import React, { useEffect, useState } from "react";
+import axios from "axios";
 import { toast } from "react-toastify";
 import API from "../api/axios.js";
+import { useAuth } from "../hooks/AuthContext.jsx";
+import InquirySendingOverlay from "./loaders/InquirySendingOverlay.jsx";
 
 const InquiryModal = ({
   isOpen,
@@ -11,13 +13,25 @@ const InquiryModal = ({
   propertyId,
   propertyTitle,
 }) => {
+  const { user } = useAuth();
   const [formData, setFormData] = useState({
-    name: "",
-    email: "",
-    phone: "",
+    name: user?.name || "",
+    email: user?.email || "",
+    phone: user?.phoneNumber || "",
     message: `I'm interested in "${propertyTitle}". Let's connect!`,
   });
   const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    if (isOpen) {
+      setFormData({
+        name: user?.name || "",
+        email: user?.email || "",
+        phone: user?.phoneNumber || "",
+        message: `I'm interested in "${propertyTitle}". Let's connect!`,
+      });
+    }
+  }, [isOpen, propertyTitle, user]);
 
   if (!isOpen) return null;
 
@@ -28,7 +42,7 @@ const InquiryModal = ({
     try {
       const inquiryData = {
         ...formData,
-        agentId, 
+        agentId,
         propertyId,
       };
 
@@ -37,7 +51,12 @@ const InquiryModal = ({
       if (response.status === 201) {
         toast.success(`Message sent to ${agentName}!`);
         onClose();
-        setFormData({ name: "", email: "", phone: "", message: "" });
+        setFormData({
+          name: user?.name || "",
+          email: user?.email || "",
+          phone: user?.phoneNumber || "",
+          message: "",
+        });
       }
     } catch (error) {
       toast.error(error.response?.data?.message || "Failed to send inquiry.");
@@ -93,71 +112,73 @@ const InquiryModal = ({
             </p>
           </div>
 
-          <form onSubmit={handleSubmit} className="space-y-6">
-            {/* Input fields remain the same as your code */}
-            <div className="space-y-2">
-              <label className="text-[10px] font-black uppercase text-gray-400 ml-1">
-                Your Identity
-              </label>
-              <input
-                required
-                className="w-full px-5 py-4 rounded-2xl bg-gray-50 focus:ring-2 focus:ring-black outline-none transition-all text-sm font-medium"
-                placeholder="Full Name"
-                value={formData.name}
-                onChange={(e) =>
-                  setFormData({ ...formData, name: e.target.value })
-                }
-              />
-            </div>
+          <div className="relative">
+            {loading && <InquirySendingOverlay />}
+            <form onSubmit={handleSubmit} className="space-y-6">
+              <div className="space-y-2">
+                <label className="text-[10px] font-black uppercase text-gray-400 ml-1">
+                  Your Identity
+                </label>
+                <input
+                  required
+                  className="w-full px-5 py-4 rounded-2xl bg-gray-50 focus:ring-2 focus:ring-black outline-none transition-all text-sm font-medium"
+                  placeholder="Full Name"
+                  value={formData.name}
+                  onChange={(e) =>
+                    setFormData({ ...formData, name: e.target.value })
+                  }
+                />
+              </div>
 
-            <div className="space-y-2">
-              <label className="text-[10px] font-black uppercase text-gray-400 ml-1">
-                Contact Info
-              </label>
-              <input
-                required
-                type="email"
-                className="w-full px-5 py-4 rounded-2xl bg-gray-50 focus:ring-2 focus:ring-black outline-none transition-all text-sm font-medium mb-3"
-                placeholder="Email Address"
-                value={formData.email}
-                onChange={(e) =>
-                  setFormData({ ...formData, email: e.target.value })
-                }
-              />
-              <input
-                required
-                type="tel"
-                className="w-full px-5 py-4 rounded-2xl bg-gray-50 focus:ring-2 focus:ring-black outline-none transition-all text-sm font-medium"
-                placeholder="Phone Number"
-                value={formData.phone}
-                onChange={(e) =>
-                  setFormData({ ...formData, phone: e.target.value })
-                }
-              />
-            </div>
+              <div className="space-y-2">
+                <label className="text-[10px] font-black uppercase text-gray-400 ml-1">
+                  Contact Info
+                </label>
+                <input
+                  required
+                  type="email"
+                  className="w-full px-5 py-4 rounded-2xl bg-gray-50 focus:ring-2 focus:ring-black outline-none transition-all text-sm font-medium mb-3"
+                  placeholder="Email Address"
+                  value={formData.email}
+                  onChange={(e) =>
+                    setFormData({ ...formData, email: e.target.value })
+                  }
+                />
+                <input
+                  required
+                  type="tel"
+                  className="w-full px-5 py-4 rounded-2xl bg-gray-50 focus:ring-2 focus:ring-black outline-none transition-all text-sm font-medium"
+                  placeholder="Phone Number"
+                  value={formData.phone}
+                  onChange={(e) =>
+                    setFormData({ ...formData, phone: e.target.value })
+                  }
+                />
+              </div>
 
-            <div className="space-y-2">
-              <label className="text-[10px] font-black uppercase text-gray-400 ml-1">
-                Message
-              </label>
-              <textarea
-                rows="5"
-                className="w-full px-5 py-4 rounded-2xl bg-gray-50 focus:ring-2 focus:ring-black outline-none transition-all text-sm font-medium resize-none"
-                value={formData.message}
-                onChange={(e) =>
-                  setFormData({ ...formData, message: e.target.value })
-                }
-              ></textarea>
-            </div>
+              <div className="space-y-2">
+                <label className="text-[10px] font-black uppercase text-gray-400 ml-1">
+                  Message
+                </label>
+                <textarea
+                  rows="5"
+                  className="w-full px-5 py-4 rounded-2xl bg-gray-50 focus:ring-2 focus:ring-black outline-none transition-all text-sm font-medium resize-none"
+                  value={formData.message}
+                  onChange={(e) =>
+                    setFormData({ ...formData, message: e.target.value })
+                  }
+                ></textarea>
+              </div>
 
-            <button
-              type="submit"
-              disabled={loading}
-              className={`w-full ${loading ? "bg-gray-400" : "bg-black"} text-white py-5 rounded-2xl font-black uppercase tracking-widest text-[10px] shadow-xl hover:bg-gray-800 transition-all`}
-            >
-              {loading ? "Sending..." : "Send Secure Message"}
-            </button>
-          </form>
+              <button
+                type="submit"
+                disabled={loading}
+                className={`w-full ${loading ? "bg-gray-400" : "bg-black"} text-white py-5 rounded-2xl font-black uppercase tracking-widest text-[10px] shadow-xl hover:bg-gray-800 transition-all`}
+              >
+                {loading ? "Sending..." : "Send Secure Message"}
+              </button>
+            </form>
+          </div>
         </div>
       </div>
     </div>

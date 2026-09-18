@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
+import CardImage from "./loaders/CardImageShimmer";
 
 const PropertyCard = ({ property, layout = "vertical", matchedFilters=[] }) => {
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
@@ -66,14 +67,14 @@ const PropertyCard = ({ property, layout = "vertical", matchedFilters=[] }) => {
 
   if (layout === "horizontal") {
     return (
-      <div className="group flex bg-white rounded-[32px] overflow-hidden shadow-sm hover:shadow-xl transition-all duration-500 border border-gray-100 w-full h-72 mb-6">
+      <div className="group flex bg-white rounded-[32px] overflow-hidden shadow-sm hover:shadow-xl transition-all duration-500 border border-gray-100 w-full h-80 mb-6">
         {/* IMAGE SECTION (45%) */}
         <div
           className="relative w-[45%] h-full overflow-hidden bg-gray-100"
           onMouseEnter={() => setAutoPlay(false)}
           onMouseLeave={() => setAutoPlay(true)}
         >
-          <img
+          <CardImage
             src={images[currentImageIndex]}
             alt={property.title}
             className="w-full h-full object-cover transition-opacity duration-500"
@@ -220,7 +221,7 @@ const PropertyCard = ({ property, layout = "vertical", matchedFilters=[] }) => {
   return (
     <div className="group bg-white rounded-[32px] overflow-hidden shadow-sm hover:shadow-2xl transition-all duration-500 border border-gray-100">
       <div className="relative h-64 overflow-hidden bg-gray-100">
-        <img
+        <CardImage
           src={images[currentImageIndex]}
           alt={property.title}
           className="w-full h-full object-cover transition-opacity duration-500"

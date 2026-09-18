@@ -19,11 +19,11 @@ const Home = () => {
     if (search.location) params.append("city", search.location);
     if (search.type === "Commercial") {
       navigate(`/commercial?${params.toString()}`);
-      return; 
+      return;
     }
     if (search.type === "Plots") {
       navigate(`/plots?${params.toString()}`);
-      return; 
+      return;
     }
     params.append("purpose", search.type);
     navigate(`/search?${params.toString()}`);
@@ -146,7 +146,10 @@ const Home = () => {
               Handpicked premium properties just for you.
             </p>
           </div>
-          <button className="hidden md:block px-8 py-4 rounded-2xl border-2 border-black text-black font-black uppercase text-sm tracking-widest hover:bg-black hover:text-white transition-all shadow-sm">
+          <button
+            onClick={() => navigate("/search?purpose=Buy")}
+            className="hidden md:block px-8 py-4 rounded-2xl border-2 border-black text-black font-black uppercase text-sm tracking-widest hover:bg-black hover:text-white transition-all shadow-sm"
+          >
             View All
           </button>
         </div>

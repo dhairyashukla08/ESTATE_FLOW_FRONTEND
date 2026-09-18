@@ -77,7 +77,11 @@ const Agents = () => {
 
         {/* Agents Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-          {filteredAgents.length > 0 ? (
+          {loading ? (
+            <div className="col-span-full">
+              <AgentGridSkeleton />
+            </div>
+          ) : filteredAgents.length > 0 ? (
             filteredAgents.map((agent) => (
               <AgentCard
                 key={agent._id || agent.id}
@@ -108,7 +112,10 @@ const Agents = () => {
           <h2 className="text-3xl font-semibold mb-4">
             Are you a Real Estate Professional?
           </h2>
-          <button onClick={() => navigate("/register")} className="px-10 py-3 rounded-xl bg-white text-black hover:bg-gray-200 transition font-bold uppercase text-xs tracking-widest">
+          <button
+            onClick={() => navigate("/register")}
+            className="px-10 py-3 rounded-xl bg-white text-black hover:bg-gray-200 transition font-bold uppercase text-xs tracking-widest"
+          >
             Register as an Agent
           </button>
         </div>

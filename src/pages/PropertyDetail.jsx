@@ -4,6 +4,7 @@ import { usePropertyContext } from "../hooks/PropertyContext";
 import InquiryModal from "../components/InquiryModal.jsx";
 import axios from "axios";
 import API from "../api/axios.js";
+import PropertyDetailSkeleton from "../components/loaders/PropertyDetailSkeleton.jsx";
 
 const PropertyDetail = () => {
   const { id } = useParams();
@@ -39,7 +40,7 @@ const PropertyDetail = () => {
   return () => { cancelled = true; };
 }, [id]);
 
-if (loading) return <div className="min-h-screen flex items-center justify-center">Loading...</div>;
+if (loading) return <PropertyDetailSkeleton/>
 if (!property) return <div className="min-h-screen flex items-center justify-center">Property not found</div>;
 
   
