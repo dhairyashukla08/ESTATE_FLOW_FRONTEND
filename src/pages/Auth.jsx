@@ -44,7 +44,9 @@ const Auth = () => {
 
       if (result.success) {
         toast.success(isLogin ? "Welcome back!" : "Account created successfully!");
-        navigate("/");
+        const role = result.user?.role;
+
+          navigate(role === "admin" ? "/admin" : role === "agent" ? "/agent/manage" : "/", { replace: true });
       } else {
         setError(result.message);
         toast.error(result.message || "Authentication failed");

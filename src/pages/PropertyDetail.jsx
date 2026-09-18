@@ -7,32 +7,40 @@ import API from "../api/axios.js";
 
 const PropertyDetail = () => {
   const { id } = useParams();
-  const { properties, commercialProperties, plotProperties, loading: contextLoading } = usePropertyContext();
   const [property, setProperty] = useState(null);
+  const [loading, setLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
 
-  useEffect(() => {
-    const allProperties = [...properties, ...commercialProperties, ...plotProperties];
-    if (allProperties.length > 0) {
-      const found = allProperties.find((p) => p._id === id);
-      setProperty(found);
+ useEffect(() => {
+  let cancelled = false;
 
-      if (found) {
-        const updateViews = async () => {
-          try {
-            const type = found.features?.carpetArea ? "Commercial" : found.features?.plotArea ? "Plot" : "Property";
-            await API.post(`/api/properties/${id}/view?type=${type}`);
-          } catch (err) {
-            console.error("Error updating view count:", err);
-          }
-        };
-        updateViews();
-      }
+  const load = async () => {
+    setLoading(true);
+    const attempts = [
+      { url: `/api/properties/${id}`, type: "Property" },
+      { url: `/api/commercial/${id}`, type: "Commercial" },
+      { url: `/api/plots/${id}`, type: "Plot" },
+    ];
+
+    for (const a of attempts) {
+      try {
+        const res = await API.get(a.url);
+        if (cancelled) return;
+        setProperty(res.data);
+        setLoading(false);
+        API.post(`/api/properties/${id}/view?type=${a.type}`).catch(() => {});
+        return;
+      } catch {  }
     }
-  }, [id, properties, commercialProperties, plotProperties]);
+    if (!cancelled) { setProperty(null); setLoading(false); }
+  };
 
-  if (contextLoading) return <div className="min-h-screen flex items-center justify-center">Loading...</div>;
-  if (!property) return <div className="min-h-screen flex items-center justify-center">Property not found</div>;
+  load();
+  return () => { cancelled = true; };
+}, [id]);
+
+if (loading) return <div className="min-h-screen flex items-center justify-center">Loading...</div>;
+if (!property) return <div className="min-h-screen flex items-center justify-center">Property not found</div>;
 
   
   const isCommercial = !!property.features?.carpetArea;

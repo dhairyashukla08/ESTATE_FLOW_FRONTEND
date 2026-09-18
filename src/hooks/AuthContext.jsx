@@ -23,7 +23,7 @@ export const AuthProvider = ({ children }) => {
 
       localStorage.setItem("user", JSON.stringify(data));
       setUser(data);
-      return { success: true };
+      return { success: true,user:data };
     } catch (error) {
       return {
         success: false,
@@ -40,7 +40,7 @@ export const AuthProvider = ({ children }) => {
 
       localStorage.setItem("user", JSON.stringify(data));
       setUser(data);
-      return { success: true };
+      return { success: true,user:data };
     } catch (error) {
       return {
         success: false,

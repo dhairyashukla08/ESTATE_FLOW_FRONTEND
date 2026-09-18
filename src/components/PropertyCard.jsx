@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 
-const PropertyCard = ({ property, layout = "vertical" }) => {
+const PropertyCard = ({ property, layout = "vertical", matchedFilters=[] }) => {
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [isExpanded, setIsExpanded] = useState(false);
   const [autoPlay, setAutoPlay] = useState(true);
@@ -49,6 +49,20 @@ const PropertyCard = ({ property, layout = "vertical" }) => {
     }, 2500);
     return () => clearInterval(interval);
   }, [autoPlay, images.length]);
+
+  const FilterBadges = () =>
+    matchedFilters.length > 0 ? (
+      <div className="flex flex-wrap gap-1.5 mt-3">
+        {matchedFilters.map((tag, i) => (
+          <span
+            key={i}
+            className="px-2.5 py-1 bg-emerald-50 text-emerald-700 text-[10px] font-black uppercase tracking-wide rounded-full border border-emerald-100"
+          >
+            {tag}
+          </span>
+        ))}
+      </div>
+    ) : null;
 
   if (layout === "horizontal") {
     return (
@@ -115,6 +129,8 @@ const PropertyCard = ({ property, layout = "vertical" }) => {
                 </p>
               </div>
             </div>
+
+            <FilterBadges />
 
             {/* DESCRIPTION */}
             <div className="mt-4 relative">
@@ -266,6 +282,8 @@ const PropertyCard = ({ property, layout = "vertical" }) => {
         <p className="text-gray-500 text-sm font-medium mt-1">
           Listed by <span className="text-black font-bold">{displayAgent}</span>
         </p>
+
+        <FilterBadges />
 
         <div className="mt-6 pt-4 border-t border-gray-100 flex justify-between text-sm">
           <div>

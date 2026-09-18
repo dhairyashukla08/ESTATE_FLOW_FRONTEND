@@ -1,90 +1,81 @@
-import axios from "axios";
 import { createContext, useContext, useEffect, useState } from "react";
 import API from "../api/axios.js";
 
 const PropertyContext = createContext();
 
+// strips empties, joins arrays into csv
+const toParams = (filters = {}) =>
+  Object.fromEntries(
+    Object.entries(filters)
+      .map(([k, v]) => [k, Array.isArray(v) ? v.join(",") : v])
+      .filter(([, v]) => v !== "" && v !== null && v !== undefined)
+  );
+
 export const PropertyProvider = ({ children }) => {
   const [properties, setProperties] = useState([]);
-  const [commercialProperties, setCommercialProperties] = useState([]); 
-  const [plotProperties, setPlotProperties] = useState([]); 
+  const [commercialProperties, setCommercialProperties] = useState([]);
+  const [plotProperties, setPlotProperties] = useState([]);
   const [featuredProperties, setFeaturedProperties] = useState([]);
   const [loading, setLoading] = useState(false);
 
-  const [filters, setFilters] = useState({
-    city: "",
-    category: "Residential",
-    purpose: "",
-    minPrice: "",
-    maxPrice: "",
-  });
-
-  const getEndpoint = (category) => {
-    switch (category) {
-      case "Commercial":
-        return "/api/commercial/all";
-      case "Plots":
-        return "/api/plots/all";
-      default:
-        return "/api/properties/all";
-    }
-  };
-
-  const fetchProperties = async (searchFilters = filters) => {
+  const fetchProperties = async (filters = {}) => {
     setLoading(true);
     try {
-      const endpoint = getEndpoint(searchFilters.category);
-
-      const params = {};
-      if (searchFilters.city) params.city = searchFilters.city;
-      if (searchFilters.purpose) params.purpose = searchFilters.purpose;
-      if (searchFilters.minPrice) params.minPrice = searchFilters.minPrice;
-      if (searchFilters.maxPrice) params.maxPrice = searchFilters.maxPrice;
-
-      const response = await API.get(endpoint, { params });
-      setProperties(response.data);
-    } catch (error) {
-      console.error("Error fetching properties:", error);
+      const res = await API.get("/api/properties/all", { params: toParams(filters) });
+      setProperties(res.data);
+    } catch (e) {
+      console.error("Error fetching properties:", e);
+      setProperties([]);
     } finally {
       setLoading(false);
     }
   };
 
-  const fetchCategoryData = async () => {
+  const fetchCommercial = async (filters = {}) => {
+    setLoading(true);
     try {
-      const [commRes, plotRes] = await Promise.all([
-        API.get("/api/commercial/all"),
-        API.get("/api/plots/all"),
-      ]);
-      setCommercialProperties(commRes.data);
-      setPlotProperties(plotRes.data);
-    } catch (error) {
-      console.error("Error fetching category specific data:", error);
+      const res = await API.get("/api/commercial/all", { params: toParams(filters) });
+      setCommercialProperties(res.data);
+    } catch (e) {
+      console.error("Error fetching commercial:", e);
+      setCommercialProperties([]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const fetchPlots = async (filters = {}) => {
+    setLoading(true);
+    try {
+      const res = await API.get("/api/plots/all", { params: toParams(filters) });
+      setPlotProperties(res.data);
+    } catch (e) {
+      console.error("Error fetching plots:", e);
+      setPlotProperties([]);
+    } finally {
+      setLoading(false);
     }
   };
 
   const fetchFeatured = async () => {
     try {
-      const response = await API.get("/api/properties/all");
-      setFeaturedProperties(response.data.slice(0, 3));
-    } catch (error) {
-      console.error("Error fetching featured properties:", error);
+      const res = await API.get("/api/properties/all");
+      setFeaturedProperties(res.data.slice(0, 3));
+    } catch (e) {
+      console.error("Error fetching featured:", e);
     }
   };
 
+  // kept so AddProperty's refresh call keeps working
+  const fetchCategoryData = async () => {
+    await Promise.all([fetchCommercial(), fetchPlots()]);
+  };
+
+  // NOTE: no unfiltered fetchProperties() here any more — that was
+  // overwriting each page's filtered results on first load.
   useEffect(() => {
     fetchFeatured();
-    fetchProperties();
-    fetchCategoryData();
   }, []);
-
-  const updateFilters = (newFilters) => {
-    setFilters((prev) => {
-      const updated = { ...prev, ...newFilters };
-      fetchProperties(updated);
-      return updated;
-    });
-  };
 
   return (
     <PropertyContext.Provider
@@ -92,11 +83,11 @@ export const PropertyProvider = ({ children }) => {
         properties,
         commercialProperties,
         plotProperties,
-        loading,
         featuredProperties,
-        filters,
-        updateFilters,
+        loading,
         fetchProperties,
+        fetchCommercial,
+        fetchPlots,
         fetchFeatured,
         fetchCategoryData,
       }}
